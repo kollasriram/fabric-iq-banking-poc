@@ -1,0 +1,43 @@
+{
+  "id": "89660a30-cb54-5b85-9ec0-6d584305722e",
+  "dataBindingConfiguration": {
+    "dataBindingType": "NonTimeSeries",
+    "propertyBindings": [
+      {
+        "sourceColumnName": "accountId",
+        "targetPropertyId": "767188938696339912"
+      },
+      {
+        "sourceColumnName": "customerId",
+        "targetPropertyId": "903746813605546943"
+      },
+      {
+        "sourceColumnName": "productId",
+        "targetPropertyId": "1051049693716631678"
+      },
+      {
+        "sourceColumnName": "branchId",
+        "targetPropertyId": "213957759337685285"
+      },
+      {
+        "sourceColumnName": "balance",
+        "targetPropertyId": "1116663882939116092"
+      },
+      {
+        "sourceColumnName": "status",
+        "targetPropertyId": "799140081654107968"
+      },
+      {
+        "sourceColumnName": "customerKey",
+        "targetPropertyId": "1095222072811300774"
+      }
+    ],
+    "sourceTableProperties": {
+      "sourceType": "LakehouseTable",
+      "workspaceId": "00000000-0000-0000-0000-000000000003",
+      "itemId": "00000000-0000-0000-0000-000000000005",
+      "sourceTableName": "dim_account",
+      "sourceSchema": "gold"
+    }
+  }
+}

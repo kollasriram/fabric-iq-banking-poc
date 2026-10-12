@@ -1,0 +1,72 @@
+/// Deposit account. Balances feed Deposit Balance. One row per account, linked to a customer, product and branch.
+table dim_account
+	lineageTag: 31553dab-8746-5ee2-9d25-aa77b05acc7e
+
+	/// Account key; join to transactions. Default label for the account.
+	column accountId
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 1b7b6d65-d99c-5c2c-927e-183448c9042d
+		summarizeBy: none
+		isDefaultLabel
+		sourceColumn: accountId
+
+	/// Payments source customer ID (lineage). Use dim_customer[customerKey] for joins.
+	column customerId
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 599305b0-bce1-5af6-b583-a9bd734fa146
+		summarizeBy: none
+		sourceColumn: customerId
+
+	/// Product held on the account; join to Product.
+	column productId
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: fd084442-dd7d-554e-ba68-e2d05fccf0bb
+		summarizeBy: none
+		sourceColumn: productId
+
+	/// Owning branch; join to Branch.
+	column branchId
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 401d333b-8d74-5cbc-a937-b60ab23fa655
+		summarizeBy: none
+		sourceColumn: branchId
+
+	/// Current account balance in USD. Summed by Deposit Balance.
+	column balance
+		dataType: double
+		sourceProviderType: float
+		lineageTag: b7a774a0-8d70-5348-8658-55c2576dbdf9
+		summarizeBy: none
+		sourceColumn: balance
+
+	/// Account status (e.g., Open, Closed).
+	column status
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 2895bb3c-2ee8-5d8a-91d3-52492489515b
+		summarizeBy: none
+		sourceColumn: status
+
+	/// Date the account was opened.
+	column openedDate
+		dataType: dateTime
+		sourceProviderType: datetime2
+		lineageTag: 07202f02-fc00-5c91-855a-9a98be53edc7
+		summarizeBy: none
+		sourceColumn: openedDate
+
+	/// Total deposit balances across accounts in USD.
+	measure 'Deposit Balance' = SUM(dim_account[balance])
+		displayFolder: Balances
+		lineageTag: 3ab7654b-3205-5665-a936-3e2c5ea4372f
+
+	partition dim_account = entity
+		mode: directLake
+		source
+			entityName: dim_account
+			schemaName: gold
+			expressionSource: DatabaseQuery

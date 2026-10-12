@@ -1,0 +1,53 @@
+{
+  "id": "311044303401865348",
+  "namespace": "usertypes",
+  "name": "FraudAlert",
+  "entityIdParts": [
+    "367830054285758281"
+  ],
+  "displayNamePropertyId": "367830054285758281",
+  "namespaceType": "Custom",
+  "visibility": "Visible",
+  "properties": [
+    {
+      "id": "367830054285758281",
+      "name": "alertId",
+      "valueType": "String"
+    },
+    {
+      "id": "1146748105539939927",
+      "name": "txnId",
+      "valueType": "String"
+    },
+    {
+      "id": "342674851995271917",
+      "name": "cardId",
+      "valueType": "String"
+    },
+    {
+      "id": "988585605175756538",
+      "name": "customerId",
+      "valueType": "String"
+    },
+    {
+      "id": "709323651605527057",
+      "name": "alertType",
+      "valueType": "String"
+    },
+    {
+      "id": "787341129240225489",
+      "name": "severity",
+      "valueType": "String"
+    },
+    {
+      "id": "536139367484263243",
+      "name": "status",
+      "valueType": "String"
+    },
+    {
+      "id": "138759740490270525",
+      "name": "customerKey",
+      "valueType": "String"
+    }
+  ]
+}

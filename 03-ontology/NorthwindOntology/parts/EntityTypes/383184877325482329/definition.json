@@ -1,0 +1,48 @@
+{
+  "id": "383184877325482329",
+  "namespace": "usertypes",
+  "name": "Account",
+  "entityIdParts": [
+    "767188938696339912"
+  ],
+  "displayNamePropertyId": "767188938696339912",
+  "namespaceType": "Custom",
+  "visibility": "Visible",
+  "properties": [
+    {
+      "id": "767188938696339912",
+      "name": "accountId",
+      "valueType": "String"
+    },
+    {
+      "id": "903746813605546943",
+      "name": "customerId",
+      "valueType": "String"
+    },
+    {
+      "id": "1051049693716631678",
+      "name": "productId",
+      "valueType": "String"
+    },
+    {
+      "id": "213957759337685285",
+      "name": "branchId",
+      "valueType": "String"
+    },
+    {
+      "id": "1116663882939116092",
+      "name": "balance",
+      "valueType": "Double"
+    },
+    {
+      "id": "799140081654107968",
+      "name": "status",
+      "valueType": "String"
+    },
+    {
+      "id": "1095222072811300774",
+      "name": "customerKey",
+      "valueType": "String"
+    }
+  ]
+}

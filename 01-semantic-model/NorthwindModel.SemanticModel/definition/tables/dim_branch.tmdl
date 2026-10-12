@@ -1,0 +1,44 @@
+/// Physical branch with its region; used for geographic rollups.
+table dim_branch
+	lineageTag: a303f81c-c217-5781-b396-af985a5d624e
+
+	/// Branch key; join to accounts.
+	column branchId
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: b48cf92d-2abe-5508-92e3-bc71fe6c5ef4
+		summarizeBy: none
+		sourceColumn: branchId
+
+	/// Branch name. Default label for the branch.
+	column name
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 24b749e0-481c-5d0f-b3ef-434995ee2b71
+		summarizeBy: none
+		isDefaultLabel
+		sourceColumn: name
+
+	/// Branch region (top of the geography hierarchy).
+	column region
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 2a46b972-b870-592b-991b-471a34789db3
+		summarizeBy: none
+		sourceColumn: region
+
+	hierarchy Geography
+		lineageTag: da8b4987-3139-5af5-bc44-c643739f8f93
+		level Region
+			lineageTag: 29e5b0d1-88b4-560a-8d26-1de002304bfa
+			column: region
+		level Branch
+			lineageTag: cebe60b6-5267-5c1c-9451-f1fcda2d6fb8
+			column: name
+
+	partition dim_branch = entity
+		mode: directLake
+		source
+			entityName: dim_branch
+			schemaName: gold
+			expressionSource: DatabaseQuery

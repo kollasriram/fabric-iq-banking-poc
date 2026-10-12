@@ -1,0 +1,12 @@
+{
+  "namespace": "usertypes",
+  "id": "741858802658792601",
+  "name": "FraudAlertConcernsCustomer",
+  "namespaceType": "Custom",
+  "source": {
+    "entityTypeId": "311044303401865348"
+  },
+  "target": {
+    "entityTypeId": "639526282436502296"
+  }
+}

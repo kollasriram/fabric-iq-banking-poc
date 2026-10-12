@@ -1,0 +1,62 @@
+[
+  {
+    "id": "GQ-P1",
+    "engine": "gql",
+    "kind": "pos",
+    "desc": "Cross-domain graph walk = 13",
+    "expected": 13,
+    "actual": 13,
+    "cmp": "eq",
+    "pass": true
+  },
+  {
+    "id": "GQ-P2",
+    "engine": "gql",
+    "kind": "pos",
+    "desc": "Customer node count = 2300",
+    "expected": 2300,
+    "actual": 2300,
+    "cmp": "eq",
+    "pass": true
+  },
+  {
+    "id": "GQ-P3",
+    "engine": "gql",
+    "kind": "pos",
+    "desc": "Transaction node count = 48710",
+    "expected": 48710,
+    "actual": 48710,
+    "cmp": "eq",
+    "pass": true
+  },
+  {
+    "id": "GQ-P4",
+    "engine": "gql",
+    "kind": "pos",
+    "desc": "Customers in both LOBs via graph = 260",
+    "expected": 260,
+    "actual": 260,
+    "cmp": "eq",
+    "pass": true
+  },
+  {
+    "id": "GQ-N1",
+    "engine": "gql",
+    "kind": "neg",
+    "desc": "Nonexistent customer key = 0",
+    "expected": 0,
+    "actual": 0,
+    "cmp": "eq",
+    "pass": true
+  },
+  {
+    "id": "GQ-N2",
+    "engine": "gql",
+    "kind": "neg",
+    "desc": "Cross-domain 13 < both-LOB 260 (strict subset)",
+    "expected": 260,
+    "actual": 13,
+    "cmp": "lt",
+    "pass": true
+  }
+]

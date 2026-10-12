@@ -1,0 +1,22 @@
+{
+  "id": "66f7660a-6082-5b87-8eec-aeaf364e9386",
+  "dataBindingTable": {
+    "sourceType": "LakehouseTable",
+    "workspaceId": "00000000-0000-0000-0000-000000000003",
+    "itemId": "00000000-0000-0000-0000-000000000005",
+    "sourceTableName": "fact_fraud_alert",
+    "sourceSchema": "gold"
+  },
+  "sourceKeyRefBindings": [
+    {
+      "sourceColumnName": "txnId",
+      "targetPropertyId": "821126287888822273"
+    }
+  ],
+  "targetKeyRefBindings": [
+    {
+      "sourceColumnName": "alertId",
+      "targetPropertyId": "367830054285758281"
+    }
+  ]
+}

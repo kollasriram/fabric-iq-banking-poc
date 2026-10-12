@@ -1,0 +1,52 @@
+[
+  {
+    "id": "PA-P1",
+    "engine": "prep-ai",
+    "kind": "pos",
+    "desc": "Every measure has a description",
+    "expected": 13,
+    "actual": 13,
+    "cmp": "eq",
+    "pass": true
+  },
+  {
+    "id": "PA-P2",
+    "engine": "prep-ai",
+    "kind": "pos",
+    "desc": "Every measure has a display folder",
+    "expected": 13,
+    "actual": 13,
+    "cmp": "eq",
+    "pass": true
+  },
+  {
+    "id": "PA-P3",
+    "engine": "prep-ai",
+    "kind": "pos",
+    "desc": "All 76 user columns have descriptions",
+    "expected": 76,
+    "actual": 76,
+    "cmp": "eq",
+    "pass": true
+  },
+  {
+    "id": "PA-N1",
+    "engine": "prep-ai",
+    "kind": "neg",
+    "desc": "No column description exceeds 200 chars",
+    "expected": 200,
+    "actual": 118,
+    "cmp": "le",
+    "pass": true
+  },
+  {
+    "id": "PA-N2",
+    "engine": "prep-ai",
+    "kind": "neg",
+    "desc": "No measure description exceeds 200 chars",
+    "expected": 200,
+    "actual": 64,
+    "cmp": "le",
+    "pass": true
+  }
+]

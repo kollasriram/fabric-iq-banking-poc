@@ -1,0 +1,22 @@
+{
+  "id": "0a36a693-3a4e-595a-8404-b1f7360348fb",
+  "dataBindingTable": {
+    "sourceType": "LakehouseTable",
+    "workspaceId": "00000000-0000-0000-0000-000000000003",
+    "itemId": "00000000-0000-0000-0000-000000000005",
+    "sourceTableName": "fact_loan",
+    "sourceSchema": "gold"
+  },
+  "sourceKeyRefBindings": [
+    {
+      "sourceColumnName": "customerKey",
+      "targetPropertyId": "794528406176801772"
+    }
+  ],
+  "targetKeyRefBindings": [
+    {
+      "sourceColumnName": "loanId",
+      "targetPropertyId": "445540441453618570"
+    }
+  ]
+}

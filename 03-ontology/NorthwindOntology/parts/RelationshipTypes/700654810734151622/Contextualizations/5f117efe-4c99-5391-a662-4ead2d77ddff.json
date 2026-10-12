@@ -1,0 +1,22 @@
+{
+  "id": "5f117efe-4c99-5391-a662-4ead2d77ddff",
+  "dataBindingTable": {
+    "sourceType": "LakehouseTable",
+    "workspaceId": "00000000-0000-0000-0000-000000000003",
+    "itemId": "00000000-0000-0000-0000-000000000005",
+    "sourceTableName": "fact_delinquency",
+    "sourceSchema": "gold"
+  },
+  "sourceKeyRefBindings": [
+    {
+      "sourceColumnName": "loanId",
+      "targetPropertyId": "445540441453618570"
+    }
+  ],
+  "targetKeyRefBindings": [
+    {
+      "sourceColumnName": "eventId",
+      "targetPropertyId": "428900077894838602"
+    }
+  ]
+}

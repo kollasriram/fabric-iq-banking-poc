@@ -1,0 +1,22 @@
+{
+  "id": "40704208-c56a-5bfc-b4cf-72acbff3fd65",
+  "dataBindingTable": {
+    "sourceType": "LakehouseTable",
+    "workspaceId": "00000000-0000-0000-0000-000000000003",
+    "itemId": "00000000-0000-0000-0000-000000000005",
+    "sourceTableName": "dim_account",
+    "sourceSchema": "gold"
+  },
+  "sourceKeyRefBindings": [
+    {
+      "sourceColumnName": "customerKey",
+      "targetPropertyId": "794528406176801772"
+    }
+  ],
+  "targetKeyRefBindings": [
+    {
+      "sourceColumnName": "accountId",
+      "targetPropertyId": "767188938696339912"
+    }
+  ]
+}

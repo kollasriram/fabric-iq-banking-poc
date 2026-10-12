@@ -1,0 +1,62 @@
+[
+  {
+    "id": "KQ-P1",
+    "engine": "kql",
+    "kind": "pos",
+    "desc": "LiveTransactions ingested = 6710",
+    "expected": 6710,
+    "actual": 6710,
+    "cmp": "eq",
+    "pass": true
+  },
+  {
+    "id": "KQ-P2",
+    "engine": "kql",
+    "kind": "pos",
+    "desc": "Rule1 cross-border high-value alerts = 500",
+    "expected": 500,
+    "actual": 500,
+    "cmp": "eq",
+    "pass": true
+  },
+  {
+    "id": "KQ-P3",
+    "engine": "kql",
+    "kind": "pos",
+    "desc": "Rule4 high-risk merchant txns = 1373",
+    "expected": 1373,
+    "actual": 1373,
+    "cmp": "eq",
+    "pass": true
+  },
+  {
+    "id": "KQ-N1",
+    "engine": "kql",
+    "kind": "neg",
+    "desc": "Rule1 flags zero domestic txns = 0",
+    "expected": 0,
+    "actual": 0,
+    "cmp": "eq",
+    "pass": true
+  },
+  {
+    "id": "KQ-N2",
+    "engine": "kql",
+    "kind": "neg",
+    "desc": "Safe low-value domestic cohort raises 0 alerts = 0",
+    "expected": 0,
+    "actual": 0,
+    "cmp": "eq",
+    "pass": true
+  },
+  {
+    "id": "KQ-N3",
+    "engine": "kql",
+    "kind": "neg",
+    "desc": "Rule4 high-risk 1373 < total 6710 (selective)",
+    "expected": 6710,
+    "actual": 1373,
+    "cmp": "lt",
+    "pass": true
+  }
+]

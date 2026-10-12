@@ -1,0 +1,31 @@
+{
+  "id": "8d389dfa-f147-5c55-b4aa-6c9b68cb5524",
+  "dataBindingConfiguration": {
+    "dataBindingType": "NonTimeSeries",
+    "propertyBindings": [
+      {
+        "sourceColumnName": "eventId",
+        "targetPropertyId": "428900077894838602"
+      },
+      {
+        "sourceColumnName": "loanId",
+        "targetPropertyId": "21639970163198389"
+      },
+      {
+        "sourceColumnName": "dpdBucket",
+        "targetPropertyId": "1032373872687984161"
+      },
+      {
+        "sourceColumnName": "customerKey",
+        "targetPropertyId": "201678733494400594"
+      }
+    ],
+    "sourceTableProperties": {
+      "sourceType": "LakehouseTable",
+      "workspaceId": "00000000-0000-0000-0000-000000000003",
+      "itemId": "00000000-0000-0000-0000-000000000005",
+      "sourceTableName": "fact_delinquency",
+      "sourceSchema": "gold"
+    }
+  }
+}

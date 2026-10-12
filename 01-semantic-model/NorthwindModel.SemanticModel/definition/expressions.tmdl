@@ -1,0 +1,4 @@
+expression DatabaseQuery = let database = Sql.Database("YOUR_SQL_ENDPOINT.datawarehouse.fabric.microsoft.com", "00000000-0000-0000-0000-000000000006") in database
+	lineageTag: 705e5511-2a05-51d2-a6a3-eb8888b17d67
+	annotation PBI_IncludeFutureArtifacts = False
+	annotation PBI_ResultType = Table

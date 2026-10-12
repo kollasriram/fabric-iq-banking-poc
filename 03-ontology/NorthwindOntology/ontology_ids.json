@@ -1,0 +1,143 @@
+{
+  "ontologyName": "NorthwindOntology",
+  "entityTypes": {
+    "Customer": {
+      "id": "639526282436502296",
+      "table": "dim_customer",
+      "key": "customerKey",
+      "properties": {
+        "customerKey": "794528406176801772",
+        "name": "20334948366218571",
+        "email": "258827355543990385",
+        "segment": "233322474679751754",
+        "region": "457706822039584244",
+        "homeCountry": "25506092323607584",
+        "riskScore": "294905817158169303",
+        "hasDeposits": "919591832554367622",
+        "hasLoans": "517308019885801836",
+        "paymentsCustomerId": "320750575764482886",
+        "borrowerId": "201992988361710803"
+      }
+    },
+    "Account": {
+      "id": "383184877325482329",
+      "table": "dim_account",
+      "key": "accountId",
+      "properties": {
+        "accountId": "767188938696339912",
+        "customerId": "903746813605546943",
+        "productId": "1051049693716631678",
+        "branchId": "213957759337685285",
+        "balance": "1116663882939116092",
+        "status": "799140081654107968",
+        "customerKey": "1095222072811300774"
+      }
+    },
+    "Merchant": {
+      "id": "524465300793490129",
+      "table": "dim_merchant",
+      "key": "merchantId",
+      "properties": {
+        "merchantId": "741474977223801815",
+        "name": "94283634235844690",
+        "category": "311310124672716028",
+        "mcc": "252896391462349693",
+        "country": "1110015151992580676",
+        "riskFlag": "749375372888552232"
+      }
+    },
+    "Product": {
+      "id": "455916567300030178",
+      "table": "dim_product",
+      "key": "productId",
+      "properties": {
+        "productId": "790970122539165245",
+        "name": "206281800124328864",
+        "family": "264857714427327548"
+      }
+    },
+    "Branch": {
+      "id": "124785933413722689",
+      "table": "dim_branch",
+      "key": "branchId",
+      "properties": {
+        "branchId": "435970510170447182",
+        "name": "413971207065338086",
+        "region": "352263807588734431"
+      }
+    },
+    "Transaction": {
+      "id": "1105415241693608621",
+      "table": "fact_transaction",
+      "key": "txnId",
+      "properties": {
+        "txnId": "821126287888822273",
+        "cardId": "377754660342021635",
+        "accountId": "302900815558543917",
+        "customerId": "165986195685192297",
+        "merchantId": "104973317046210146",
+        "amount": "803479698796391672",
+        "currency": "1137039974807342210",
+        "channel": "198698807507161251",
+        "geoCountry": "839858365503144247",
+        "mcc": "464324127752677771",
+        "isFraud": "773828739858388745",
+        "fraudType": "656253485175291607",
+        "customerKey": "320324051337666578"
+      }
+    },
+    "FraudAlert": {
+      "id": "311044303401865348",
+      "table": "fact_fraud_alert",
+      "key": "alertId",
+      "properties": {
+        "alertId": "367830054285758281",
+        "txnId": "1146748105539939927",
+        "cardId": "342674851995271917",
+        "customerId": "988585605175756538",
+        "alertType": "709323651605527057",
+        "severity": "787341129240225489",
+        "status": "536139367484263243",
+        "customerKey": "138759740490270525"
+      }
+    },
+    "Loan": {
+      "id": "554764643899778798",
+      "table": "fact_loan",
+      "key": "loanId",
+      "properties": {
+        "loanId": "445540441453618570",
+        "borrowerId": "1046463109326214244",
+        "applicationId": "482543447585220172",
+        "principal": "999256626520557424",
+        "rate": "538595794096457305",
+        "termMonths": "995589062566065755",
+        "balance": "350650626284435652",
+        "dpd": "812673283707910508",
+        "customerKey": "853170484820016147"
+      }
+    },
+    "DelinquencyEvent": {
+      "id": "328045347739188827",
+      "table": "fact_delinquency",
+      "key": "eventId",
+      "properties": {
+        "eventId": "428900077894838602",
+        "loanId": "21639970163198389",
+        "dpdBucket": "1032373872687984161",
+        "customerKey": "201678733494400594"
+      }
+    }
+  },
+  "relationshipTypes": {
+    "CustomerHoldsAccount": "910470128771885194",
+    "AccountRecordsTransaction": "359384922704283110",
+    "TransactionAtMerchant": "928555734590628986",
+    "TransactionRaisesFraudAlert": "1035061495931375529",
+    "CustomerOwnsLoan": "641029879909655809",
+    "LoanHasDelinquency": "700654810734151622",
+    "AccountOfProduct": "557387994621409354",
+    "AccountAtBranch": "1116581390937308087",
+    "FraudAlertConcernsCustomer": "741858802658792601"
+  }
+}

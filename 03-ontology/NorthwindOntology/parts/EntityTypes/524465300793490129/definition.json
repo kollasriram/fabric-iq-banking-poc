@@ -1,0 +1,43 @@
+{
+  "id": "524465300793490129",
+  "namespace": "usertypes",
+  "name": "Merchant",
+  "entityIdParts": [
+    "741474977223801815"
+  ],
+  "displayNamePropertyId": "94283634235844690",
+  "namespaceType": "Custom",
+  "visibility": "Visible",
+  "properties": [
+    {
+      "id": "741474977223801815",
+      "name": "merchantId",
+      "valueType": "String"
+    },
+    {
+      "id": "94283634235844690",
+      "name": "name",
+      "valueType": "String"
+    },
+    {
+      "id": "311310124672716028",
+      "name": "category",
+      "valueType": "String"
+    },
+    {
+      "id": "252896391462349693",
+      "name": "mcc",
+      "valueType": "BigInt"
+    },
+    {
+      "id": "1110015151992580676",
+      "name": "country",
+      "valueType": "String"
+    },
+    {
+      "id": "749375372888552232",
+      "name": "riskFlag",
+      "valueType": "BigInt"
+    }
+  ]
+}

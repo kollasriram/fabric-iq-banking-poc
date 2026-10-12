@@ -1,0 +1,59 @@
+{
+  "id": "8f1ac0dd-9368-559a-8bb2-359d5516982a",
+  "dataBindingConfiguration": {
+    "dataBindingType": "NonTimeSeries",
+    "propertyBindings": [
+      {
+        "sourceColumnName": "customerKey",
+        "targetPropertyId": "794528406176801772"
+      },
+      {
+        "sourceColumnName": "name",
+        "targetPropertyId": "20334948366218571"
+      },
+      {
+        "sourceColumnName": "email",
+        "targetPropertyId": "258827355543990385"
+      },
+      {
+        "sourceColumnName": "segment",
+        "targetPropertyId": "233322474679751754"
+      },
+      {
+        "sourceColumnName": "region",
+        "targetPropertyId": "457706822039584244"
+      },
+      {
+        "sourceColumnName": "homeCountry",
+        "targetPropertyId": "25506092323607584"
+      },
+      {
+        "sourceColumnName": "riskScore",
+        "targetPropertyId": "294905817158169303"
+      },
+      {
+        "sourceColumnName": "hasDeposits",
+        "targetPropertyId": "919591832554367622"
+      },
+      {
+        "sourceColumnName": "hasLoans",
+        "targetPropertyId": "517308019885801836"
+      },
+      {
+        "sourceColumnName": "paymentsCustomerId",
+        "targetPropertyId": "320750575764482886"
+      },
+      {
+        "sourceColumnName": "borrowerId",
+        "targetPropertyId": "201992988361710803"
+      }
+    ],
+    "sourceTableProperties": {
+      "sourceType": "LakehouseTable",
+      "workspaceId": "00000000-0000-0000-0000-000000000003",
+      "itemId": "00000000-0000-0000-0000-000000000005",
+      "sourceTableName": "dim_customer",
+      "sourceSchema": "gold"
+    }
+  }
+}

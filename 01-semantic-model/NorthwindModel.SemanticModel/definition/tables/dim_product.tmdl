@@ -1,0 +1,44 @@
+/// Banking product catalog (deposit and loan product families).
+table dim_product
+	lineageTag: bc50f2c0-1389-582f-8723-66dc676938f3
+
+	/// Product key; join to accounts.
+	column productId
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 5d13828a-cc44-578c-8741-6f1fe0538b1e
+		summarizeBy: none
+		sourceColumn: productId
+
+	/// Product name. Default label for the product.
+	column name
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: c61a7512-d298-55ca-8759-f5ff9f10baaf
+		summarizeBy: none
+		isDefaultLabel
+		sourceColumn: name
+
+	/// Product family grouping (top of the product hierarchy).
+	column family
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: bf6d2e22-64a7-5763-9946-a00b63bf547f
+		summarizeBy: none
+		sourceColumn: family
+
+	hierarchy 'Product Hierarchy'
+		lineageTag: 8a9a5573-4329-5191-b0e8-11275bc5bbc9
+		level Family
+			lineageTag: fafc668b-47b3-5023-91d8-8d2b96ad9c9c
+			column: family
+		level Product
+			lineageTag: cd685463-f1e1-5c31-84a5-94a0bac8c461
+			column: name
+
+	partition dim_product = entity
+		mode: directLake
+		source
+			entityName: dim_product
+			schemaName: gold
+			expressionSource: DatabaseQuery

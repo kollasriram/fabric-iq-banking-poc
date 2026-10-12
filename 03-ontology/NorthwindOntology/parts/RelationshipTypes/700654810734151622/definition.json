@@ -1,0 +1,12 @@
+{
+  "namespace": "usertypes",
+  "id": "700654810734151622",
+  "name": "LoanHasDelinquency",
+  "namespaceType": "Custom",
+  "source": {
+    "entityTypeId": "554764643899778798"
+  },
+  "target": {
+    "entityTypeId": "328045347739188827"
+  }
+}

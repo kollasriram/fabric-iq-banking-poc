@@ -1,0 +1,39 @@
+{
+  "id": "c0ea2866-8837-541e-b2c0-f3b4f32f94d9",
+  "dataBindingConfiguration": {
+    "dataBindingType": "NonTimeSeries",
+    "propertyBindings": [
+      {
+        "sourceColumnName": "merchantId",
+        "targetPropertyId": "741474977223801815"
+      },
+      {
+        "sourceColumnName": "name",
+        "targetPropertyId": "94283634235844690"
+      },
+      {
+        "sourceColumnName": "category",
+        "targetPropertyId": "311310124672716028"
+      },
+      {
+        "sourceColumnName": "mcc",
+        "targetPropertyId": "252896391462349693"
+      },
+      {
+        "sourceColumnName": "country",
+        "targetPropertyId": "1110015151992580676"
+      },
+      {
+        "sourceColumnName": "riskFlag",
+        "targetPropertyId": "749375372888552232"
+      }
+    ],
+    "sourceTableProperties": {
+      "sourceType": "LakehouseTable",
+      "workspaceId": "00000000-0000-0000-0000-000000000003",
+      "itemId": "00000000-0000-0000-0000-000000000005",
+      "sourceTableName": "dim_merchant",
+      "sourceSchema": "gold"
+    }
+  }
+}

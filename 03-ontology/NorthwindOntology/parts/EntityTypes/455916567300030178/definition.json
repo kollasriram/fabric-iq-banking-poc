@@ -1,0 +1,28 @@
+{
+  "id": "455916567300030178",
+  "namespace": "usertypes",
+  "name": "Product",
+  "entityIdParts": [
+    "790970122539165245"
+  ],
+  "displayNamePropertyId": "206281800124328864",
+  "namespaceType": "Custom",
+  "visibility": "Visible",
+  "properties": [
+    {
+      "id": "790970122539165245",
+      "name": "productId",
+      "valueType": "String"
+    },
+    {
+      "id": "206281800124328864",
+      "name": "name",
+      "valueType": "String"
+    },
+    {
+      "id": "264857714427327548",
+      "name": "family",
+      "valueType": "String"
+    }
+  ]
+}

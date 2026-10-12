@@ -1,0 +1,12 @@
+{
+  "namespace": "usertypes",
+  "id": "1116581390937308087",
+  "name": "AccountAtBranch",
+  "namespaceType": "Custom",
+  "source": {
+    "entityTypeId": "383184877325482329"
+  },
+  "target": {
+    "entityTypeId": "124785933413722689"
+  }
+}

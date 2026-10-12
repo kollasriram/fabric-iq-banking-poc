@@ -1,0 +1,12 @@
+{
+  "namespace": "usertypes",
+  "id": "641029879909655809",
+  "name": "CustomerOwnsLoan",
+  "namespaceType": "Custom",
+  "source": {
+    "entityTypeId": "639526282436502296"
+  },
+  "target": {
+    "entityTypeId": "554764643899778798"
+  }
+}

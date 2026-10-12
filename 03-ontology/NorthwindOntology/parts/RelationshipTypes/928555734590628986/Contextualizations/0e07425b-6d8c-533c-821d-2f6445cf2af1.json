@@ -1,0 +1,22 @@
+{
+  "id": "0e07425b-6d8c-533c-821d-2f6445cf2af1",
+  "dataBindingTable": {
+    "sourceType": "LakehouseTable",
+    "workspaceId": "00000000-0000-0000-0000-000000000003",
+    "itemId": "00000000-0000-0000-0000-000000000005",
+    "sourceTableName": "fact_transaction",
+    "sourceSchema": "gold"
+  },
+  "sourceKeyRefBindings": [
+    {
+      "sourceColumnName": "txnId",
+      "targetPropertyId": "821126287888822273"
+    }
+  ],
+  "targetKeyRefBindings": [
+    {
+      "sourceColumnName": "merchantId",
+      "targetPropertyId": "741474977223801815"
+    }
+  ]
+}
