@@ -10,6 +10,7 @@ Follow **[the lab instructions](LAB.md)**. They include setup, data upload, note
 fabric-iq-banking-poc/
 ├── README.md
 ├── LAB.md         # step-by-step lab instructions
+├── Fabric-IQ-Banking-POC-Design.md  # historical design reference
 ├── notebooks/     # four ordered notebooks + two optional model builders
 └── data/          # ready-to-upload synthetic data ZIP
 ```
@@ -33,3 +34,7 @@ Optional LOB models: choose [Payments only](notebooks/optional-payments-model.ip
 - Fabric IQ preview and AI branches require the permissions and capacity described in the guide. Do not upgrade capacity or enable notifications without authorization.
 
 Reference values are checkpoints, not proof that your environment has been validated. The instructions retain the original acceptance limitations; waived checks are not passes.
+
+## Design Reference
+
+[Design document](Fabric-IQ-Banking-POC-Design.md): historical architecture rationale and feature inventory. Use the lab instructions above for the current execution steps, not the historical deployment plans in this document.
