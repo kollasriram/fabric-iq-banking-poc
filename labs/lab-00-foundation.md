@@ -45,7 +45,7 @@ python generate.py --scale demo --seed 42
 Produces `payments/`, `lending/`, and `truth_customer_crosswalk.csv`.
 
 ### 2. Upload to OneLake
-Follow [Getting Started Part C](00-GETTING-STARTED.md#part-c--upload-the-data-into-the-portal-step-by-step). The required layout is `Files/NorthwindLakehouse/{payments,lending,truth}` for an isolated build.
+Follow [the consolidated walkthrough](Fabric-IQ-Banking-POC-UI-Walkthrough.md), section 2.2, for the upload steps. The required layout is `Files/NorthwindLakehouse/{payments,lending,truth}` for an isolated build.
 
 ### 3. Build gold
 Import [nb_load_files_to_tables.ipynb](../00-foundation/nb_load_files_to_tables.ipynb), attach the target Lakehouse, confirm the `BASE` setting, and run all cells.
@@ -60,4 +60,4 @@ The notebook's final checks must report **2300** mastered customers, **600** in 
 - `gold.dim_customer` has 2300 rows; 600 have both `hasDeposits` and `hasLoans`.
 - Re-running is idempotent (same seed → same data).
 
-> The `build_medallion.py` and PowerShell/Livy flow is retained as historical automation. It is not the canonical attendee path.
+> The [legacy medallion builder](../tools/legacy/00-foundation/build_medallion.py) and PowerShell/Livy flow are retained as optional historical automation. They are not the attendee path.

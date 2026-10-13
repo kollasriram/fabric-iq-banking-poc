@@ -3,6 +3,7 @@
 Build or validate the **Northwind Financial POC in Microsoft Fabric**. The canonical environment is tenant **YOUR_TENANT.onmicrosoft.com** (`00000000-0000-0000-0000-000000000001`), workspace **`YOUR_WORKSPACE_NAME`** (`00000000-0000-0000-0000-000000000003`). Core acceptance is the headline cross-domain answer **13** in Spark and `IQModel` DAX, plus the Eventhouse fraud-rule results. Ontology graph (GQL) and data-agent answers extend that proof through optional preview branches. Record each checkpoint only after executing it in this workspace; core completion is not full-lab completion.
 
 **Audience:** facilitators and hands-on attendees.
+**Start here:** this is the single attendee guide, including prerequisites, sample-data upload, notebook execution, checkpoints, and troubleshooting. It replaces the separate Getting Started procedures. No local Python or PowerShell is required unless you choose optional developer automation.
 **Time:** ~3–4 hours for modules 0–8; the portal-only modules (Planning §10 and Agent grounding §11) add ~1–2 hours.
 **Note:** Fabric IQ features are in preview — screen names and button placement change. Treat each step as *intent + sequence* and adapt to the current UI. Where a step is inherently code (synthetic data, Spark transforms, DAX, GQL, KQL), you author it in a Fabric **browser** editor (notebook / model / query set) and paste the snippet from this repo — that is still the UI path.
 
@@ -26,6 +27,22 @@ Use these names throughout the run; do not switch workspaces or mix names from a
 > **Build order:** the sections below are ordered so you can run them **top to bottom** with no forward jumps. The **Module N** tag on each heading is the *curriculum* label; the *section number* is the *build* order. Notably, **RTI (Module 7)** is built **before** the ontology (so the Transaction time-series binding works in place), and the **data agent (Module 8)** is built **before** graph analysis (so the natural-language questions work).
 
 ## How to follow this walkthrough
+
+### Notebook Checklist
+
+Start with sections 0 and 1 below, upload the packaged synthetic data in section 2.2, then import the notebooks below into your configured workspace. Replace `YOUR_*` values and sample GUIDs, and set each notebook's default lakehouse where needed. Local Python and PowerShell are not attendee prerequisites. Follow this walkthrough's build order; do not run every notebook indiscriminately.
+
+| Walkthrough section | Notebook | Before running / expected checkpoint |
+|---|---|---|
+| 2 | [Load files into gold tables](../00-foundation/nb_load_files_to_tables.ipynb) | Attach the upload lakehouse; expect 10 gold tables, 2,300 mastered customers, and 48,710 transactions. **Rebuilds gold tables.** |
+| 3.1 | [Configure IQModel relationships](../01-semantic-model/nb_iqmodel_relationships.ipynb) | Create combined IQModel in the UI first. Then add/check the walkthrough's cross-domain measure; reference result: 13. |
+| 3.2, optional alternative | [Payments model only](../01-semantic-model/nb_create_payments_model.ipynb) **or** [both LOB models](../01-semantic-model/nb_create_semantic_model.ipynb) | Choose one builder; the two-model notebook also creates PaymentsDepositsModel. Neither is a replacement for combined IQModel. Review overwrite behavior on existing models. |
+| 5 | [Seed RTI](../07-realtime-fraud/nb_setup_rti.ipynb) | Configure the source lakehouse and KQL database; expect 6,710 seed events. **Drops/reloads the target table.** Apply the fraud-rule KQL from section 5 separately. |
+| 5, optional streaming | [Configure Eventstream](../07-realtime-fraud/nb_setup_eventstream.ipynb) | Requires the target KQL database/table. **Replaces the same-name stream and sends 300 events once.** Verify ingestion with queries instead of rerunning the send. |
+
+Use an isolated lab for rebuilds and replacements. Prep for AI, ontology, time-series bindings, agents, and Planning remain UI procedures below; they do not require new script-only execution steps. [Legacy automation](../tools/legacy/README.md) is separate facilitator reference, not the attendee route.
+
+### Navigation Conventions
 
 These instructions assume only basic Fabric navigation. Use the following conventions throughout:
 
@@ -85,6 +102,15 @@ Record each optional branch as **Passed**, **Pending/Blocked** (with the reason)
 
 **Feature:** *Fabric tenant settings & workspaces* — admin toggles switch on the preview workloads (Ontology, Data agent, Operations agent, Copilot) and a capacity-backed **workspace** is the security, collaboration, and billing boundary for everything you build.
 
+### 0.0 Get the repository and sign in
+
+1. Open [the public repository](https://github.com/kollasriram/fabric-iq-banking-poc) and select **Code → Download ZIP**, then extract it locally. Cloning the repository is an optional alternative.
+2. Open the extracted project folder in File Explorer. Confirm it contains `data`, `00-foundation`, `01-semantic-model`, and `labs`; keep it available for notebook imports and CSV uploads.
+3. Open **https://app.fabric.microsoft.com** in a browser and sign in with your work account in the tenant you will use for the lab.
+4. Configure the public placeholders for your own environment. `YOUR_*` strings and `00000000-0000-0000-0000-*` GUIDs are examples, not a working deployment. Workspace and lakehouse IDs are available in each item's browser URL.
+
+**Checkpoint:** the project files are available locally and you are signed in to the intended Fabric tenant. Notebook execution occurs in Fabric, not in local Python.
+
 ### 0.1 Tenant settings (Fabric admin)
 > **Optional-branch prerequisites:** enable Ontology, Data Agent, Operations Agent, and Copilot settings only for the branches you intend to run. Teams setup is needed only for approved Operations Agent notifications. Missing preview toggles or AI eligibility do not block the core Spark/DAX/KQL route; do not change tenant settings or upgrade capacity without authorization.
 
@@ -96,6 +122,8 @@ Record each optional branch as **Passed**, **Pending/Blocked** (with the reason)
 4. Confirm a **paid F2+ Fabric capacity or P1+ Power BI Premium capacity** is assigned for Copilot. PPU alone and trial capacity do not satisfy the Copilot portions of this lab.
 
 ### 0.2 Select the workspace
+For a new isolated lab, select **Workspaces → New workspace**, enter a lab name such as `Fabric-IQ-Banking-POC`, choose your authorized capacity under **Advanced / License mode**, and select **Apply**. Set `YOUR_WORKSPACE_NAME` and its workspace ID to that new workspace everywhere before proceeding. Creating a workspace does not create or upgrade a capacity. Otherwise, use an existing authorized workspace as follows.
+
 1. In the left navigation, select **Workspaces**.
 2. In the workspace list, select **YOUR_WORKSPACE_NAME**. If it is not visible, use the workspace search box.
 3. Confirm the browser address contains `/groups/00000000-0000-0000-0000-000000000003/`. This prevents accidentally building in a similarly named workspace.
@@ -115,7 +143,7 @@ Record each optional branch as **Passed**, **Pending/Blocked** (with the reason)
 
 The synthetic source data is **provided as a zip** — no local generation needed.
 
-1. In File Explorer, locate **`NorthwindLakehouse-data.zip`**.
+1. In the extracted repository, locate [data/generator/dist/NorthwindLakehouse-data.zip](../data/generator/dist/NorthwindLakehouse-data.zip).
 2. Right-click the file and select **Extract All**.
 3. Select a destination folder, then select **Extract**.
 4. Open the extracted folder and confirm it contains the folders `payments`, `lending`, and `truth`.
@@ -123,6 +151,16 @@ The synthetic source data is **provided as a zip** — no local generation neede
 6. Keep this File Explorer window open; you will select these files during the Lakehouse upload in §2.2.
 
 **Two source systems on purpose:** `payments/*` uses `P-####` customer IDs; `lending/*` uses `B-####` borrower IDs. The same people appear in both with the **same email** — that's what entity resolution unifies.
+
+### Optional: regenerate instead of using the ZIP
+
+Only use this route when you deliberately need to rebuild the synthetic files. Install Python 3.10 or later, open PowerShell in the repository root, and run the standard-library-only generator:
+
+```powershell
+python data/generator/generate.py --scale demo --seed 42
+```
+
+The output is `data/generator/out/payments`, `data/generator/out/lending`, and **`data/generator/out/truth_customer_crosswalk.csv`**. Unlike the ZIP, the generator places the crosswalk at the output root, not inside a `truth` folder. In section 2.2, upload that file into **Files/NorthwindLakehouse/truth**. Do not prefix its name with `_`: Spark treats underscore-prefixed files as hidden. Different scales or seeds change the reference counts.
 
 ---
 

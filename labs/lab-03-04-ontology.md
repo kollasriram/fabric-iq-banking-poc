@@ -45,12 +45,12 @@ The semantic model is great for BI, but agents and operational apps need a **gra
 ### 1. Enrich gold for the relationship link
 ```powershell
 cd fabric-iq-banking-poc/deploy
-./lib_livy_run.ps1 -PyFile ../03-ontology/enrich_account.py   # adds customerKey to gold.dim_account
+./lib_livy_run.ps1 -PyFile ../tools/legacy/03-ontology/enrich_account.py   # adds customerKey to gold.dim_account
 ```
 
 ### 2. Generate and create the ontology
 ```powershell
-python ../03-ontology/generate_ontology.py
+python ../tools/legacy/03-ontology/generate_ontology.py
 ./06_create_ontology.ps1
 ```
 

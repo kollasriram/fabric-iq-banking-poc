@@ -39,17 +39,17 @@ These scripts do not build or validate the current `IQModel` workflow.
 | 1 | `01_create_workspace.ps1` | workspace on the IQ-enabled capacity |
 | 2 | `02_create_lakehouse.ps1` | schema-enabled `NorthwindLakehouse` |
 | 3 | `../data/generator/generate.py` → `03_upload_data.ps1` (+ `03b_upload_truth.ps1`) | synthetic data → OneLake Files |
-| 4 | `lib_livy_run.ps1 -PyFile ../00-foundation/build_medallion.py` | bronze/silver/gold + entity resolution |
+| 4 | `lib_livy_run.ps1 -PyFile ../tools/legacy/00-foundation/build_medallion.py` | bronze/silver/gold + entity resolution |
 | 4b | `04b_refresh_sql_endpoint.ps1` | **required** — SQL endpoint metadata sync after Spark writes |
-| 5 | `lib_livy_run.ps1 -PyFile ../01-semantic-model/normalize_gold.py` → `05_create_semantic_model.ps1` | Direct Lake model + KPIs |
+| 5 | `lib_livy_run.ps1 -PyFile ../tools/legacy/01-semantic-model/normalize_gold.py` → `05_create_semantic_model.ps1` | Direct Lake model + KPIs |
 | 5b | `05b_verify_semantic_model.ps1` | DAX KPIs + cross-domain = 13 |
-| 6 | `lib_livy_run.ps1 -PyFile ../03-ontology/enrich_account.py` → `06_create_ontology.ps1` | ontology (9 entities / 9 rels, static bindings) |
+| 6 | `lib_livy_run.ps1 -PyFile ../tools/legacy/03-ontology/enrich_account.py` → `06_create_ontology.ps1` | ontology (9 entities / 9 rels, static bindings) |
 | 6b | `06b_update_ontology.ps1` | adds the **Eventhouse time-series binding** (run after step 7) |
 | 6c | `06c_refresh_graph.ps1` | materialize the companion graph |
 | 6d | `06d_graph_crossdomain_walk.ps1` | GQL cross-domain walk = 13 |
 | 6e | `06e_verify_timeseries_binding.ps1` | confirm the KustoTable TS binding |
 | 7 | `07_create_eventhouse.ps1` → `07b_create_kql_table.ps1` | Eventhouse + `LiveTransactions` table |
-| 8 | `../07-realtime-fraud/build_rti_events.py` → `08_ingest_rti_and_rules.ps1` | ingest + run the 4 KQL fraud rules |
+| 8 | `../tools/legacy/07-realtime-fraud/build_rti_events.py` → `08_ingest_rti_and_rules.ps1` | ingest + run the 4 KQL fraud rules |
 | 9 | `09_create_dataagent.ps1` → `09b_dataagent_instructions.ps1` | data agent + AI instructions |
 | 10 | `10_create_eventstream.ps1` | Eventstream item (topology wiring is portal) |
 
@@ -57,7 +57,7 @@ Utilities: `util_sqlcheck.ps1` (query the lakehouse SQL endpoint), `06-graph/gra
 
 ## Historical verification
 The archived deployment returned cross-domain **13** from all three engines:
-- Spark: `../00-foundation/_validate_crossdomain.py` (via `lib_livy_run.ps1`)
+- Spark: `../tools/legacy/00-foundation/_validate_crossdomain.py` (via `lib_livy_run.ps1`)
 - DAX: `05b_verify_semantic_model.ps1`
 - GQL: `06d_graph_crossdomain_walk.ps1`
 

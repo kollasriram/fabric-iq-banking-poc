@@ -11,7 +11,8 @@ EH_ID = "00000000-0000-0000-0000-000000000012"
 EH_CLUSTER = "https://YOUR_KQL_CLUSTER.kusto.fabric.microsoft.com"
 EH_DB = "NorthwindRTI"
 EH_TABLE = "LiveTransactions"
-OUT = os.path.join(os.path.dirname(__file__), "NorthwindOntology")
+REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+OUT = os.path.join(REPO, "03-ontology", "NorthwindOntology")
 PARTS = os.path.join(OUT, "parts")
 
 def big_id(name):  # deterministic positive 64-bit-safe integer id (as string)

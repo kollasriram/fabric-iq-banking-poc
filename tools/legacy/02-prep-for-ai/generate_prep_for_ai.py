@@ -5,7 +5,8 @@
 # metadata — descriptions, display folders, isDefaultLabel — is already in the TMDL.)
 import os, json
 
-OUT = os.path.dirname(__file__)
+REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+OUT = os.path.join(REPO, "02-prep-for-ai")
 
 AI_INSTRUCTIONS = """\
 # Northwind Financial — Copilot AI Instructions (draft; apply in Prep data for AI)

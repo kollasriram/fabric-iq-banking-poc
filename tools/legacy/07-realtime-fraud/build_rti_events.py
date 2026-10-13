@@ -3,7 +3,8 @@
 # rules are self-contained on the event stream.
 import csv, json, os
 
-OUT = os.path.join(os.path.dirname(__file__), "..", "data", "generator", "out")
+REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+OUT = os.path.join(REPO, "data", "generator", "out")
 def load(p):
     with open(os.path.join(OUT, p), encoding="utf-8") as f:
         return list(csv.DictReader(f))
@@ -35,6 +36,6 @@ for i in range(0, len(sample), B):
     rows = "\n".join(row_csv(t) for t in sample[i:i+B])
     batches.append(".ingest inline into table LiveTransactions with (format='csv') <|\n" + rows)
 
-with open(os.path.join(os.path.dirname(__file__), "_rti_batches.json"), "w", encoding="utf-8") as f:
+with open(os.path.join(REPO, "07-realtime-fraud", "_rti_batches.json"), "w", encoding="utf-8") as f:
     json.dump(batches, f)
 print(f"wrote {len(batches)} ingest batches")

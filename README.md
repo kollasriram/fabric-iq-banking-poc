@@ -8,6 +8,29 @@ A hands-on lab repository that exercises **every pillar of Microsoft Fabric IQ (
 
 > **Owner-accepted release (2026-10-12):** 26 AI matrix cases passed; M01 has correct fraud-rate/query evidence but unconfirmed verified-answer matching; S03 was not run. The owner waived the remaining checks, including fresh native notebook import and the complete current-workspace regression run. Earlier local offline checks passed 27 mocked happy-path assertions plus intentional-failure and session-cleanup fixtures. Waived checks are not passes or production certification. Graph, Planning, external integrations, and notification delivery were excluded from this acceptance scope.
 
+## Start Here: Notebooks and UI
+
+Follow [the single attendee walkthrough](labs/Fabric-IQ-Banking-POC-UI-Walkthrough.md) from setup and data upload through notebook execution and final checkpoints. Import the notebooks below into your own Fabric workspace and configure their parameters and lakehouse attachments before running them. The main path does not require local Python or PowerShell: use the packaged synthetic data ZIP linked in the walkthrough.
+
+| Step | Notebook or UI task | Prerequisite and checkpoint |
+|---|---|---|
+| 1 | [Load files into gold tables](00-foundation/nb_load_files_to_tables.ipynb) | Upload the sample Files and attach the lakehouse. Expect 10 gold tables and 48,710 transactions. **Rebuilds gold tables; use a disposable lab lakehouse.** |
+| 2 | Create the combined `IQModel` in the UI | Select all 10 gold tables, following walkthrough section 3. This is the cross-domain model, not a LOB-only model. |
+| 3 | [Configure IQModel relationships](01-semantic-model/nb_iqmodel_relationships.ipynb) | `IQModel` must already exist. Follow the guide to add and check the cross-domain measure; the reference headline is 13. |
+| 4 | Optional: configure Prep for AI in the UI | Follow walkthrough section 4; review and apply owner-controlled settings explicitly. |
+| 5 | [Load the RTI seed data](07-realtime-fraud/nb_setup_rti.ipynb) | Configure the Eventhouse/KQL database and source lakehouse. Reference seed count: 6,710. **Drops and reloads the target table; do not rerun on a live stream.** |
+| 6 | Optional streaming: [configure Eventstream and send sample events](07-realtime-fraud/nb_setup_eventstream.ipynb) | Use the existing KQL database/table and configure notebook parameters. **Replaces the same-name Eventstream and sends 300 events once.** Use the walkthrough's bounded queries to verify ingestion, not another send. |
+| 7 | Optional preview: create ontology, bind time-series properties, and configure agents in the UI | Continue walkthrough sections 6 and 8 after RTI is ready. Planning, external integrations, and security labs are also optional branches. |
+
+### Alternative Model Notebooks
+
+These are alternative LOB model-building paths, not extra required steps for the combined `IQModel`:
+
+- [Create PaymentsDepositsModel only](01-semantic-model/nb_create_payments_model.ipynb): use for the Payments-focused AI lab.
+- [Create both LOB models](01-semantic-model/nb_create_semantic_model.ipynb): use when demonstrating separate Payments and Lending models. This also creates the Payments model, so choose this or the Payments-only notebook, not both. Review overwrite behavior before running against existing models.
+
+Optional automation is indexed separately in [tools/legacy/README.md](tools/legacy/README.md). The [data generator](data/generator/generate.py) and [tests](tests/run_all.ps1) remain developer utilities, not attendee prerequisites.
+
 ## Configure Your Environment
 
 Replace every `YOUR_*` value and each `00000000-0000-0000-0000-*` sample GUID before running deployment scripts or importing generated definitions. Sample GUIDs are format-valid placeholders, not deployed resources. Use your own tenant, subscription, workspace, capacity, lakehouse, model, and endpoint values; the archived runbook shows each value's role.
@@ -120,14 +143,15 @@ fabric-iq-banking-poc/
 ├── docs/Fabric-IQ-Banking-POC-Design.md   # full design + coverage matrix + build-status addendum
 ├── data/generator/                # deterministic synthetic-data generator (2 source systems, seeded fraud)
 ├── 00-foundation/                 # gold build + entity resolution (Spark)
-├── 01-semantic-model/             # TMDL generator + normalize step
-├── 03-ontology/                   # ontology generator (entities, rels, static + time-series bindings)
+├── 01-semantic-model/             # model notebooks + reference TMDL definitions
+├── 03-ontology/                   # reference ontology definitions (UI build in walkthrough)
 ├── 06-graph/                      # GQL ring/centrality queries
-├── 07-realtime-fraud/             # RTI event builder + KQL fraud rules
-├── deploy/                        # idempotent provisioning + verification scripts (PowerShell)
+├── 07-realtime-fraud/             # RTI and Eventstream notebooks
+├── tools/legacy/                  # optional historical Python automation
+├── deploy/                        # optional archived PowerShell automation + shared Livy helper
 ├── tests/                         # positive + negative assertion suite across all engines
 └── labs/                          # facilitator + attendee lab guides per module
-    ├── 00-GETTING-STARTED.md                     # beginner runbook: setup + data upload + how to run
+    ├── 00-GETTING-STARTED.md                     # compatibility link to the single walkthrough
     └── Fabric-IQ-Banking-POC-UI-Walkthrough.md   # build the whole POC by hand in the Fabric UI
 ```
 
@@ -138,18 +162,8 @@ fabric-iq-banking-poc/
 - A paid Fabric capacity (F2 or higher) or Power BI Premium capacity (P1 or higher) for Copilot. PPU alone and trial capacity are not sufficient for the Copilot portions of this lab.
 - Tenant settings enabled: **Ontology (preview)**, **Data agent**, Copilot/AI.
 - Permissions to create Lakehouse, Semantic model, Ontology, Graph, Eventhouse, Eventstream, Data agent.
-- Azure CLI signed in; a subscription in the target tenant (token pinned via `--subscription`).
-- Python 3.x (generator is standard-library only).
-
-## Quick start
-
-For the current YOUR_TENANT hands-on path, follow [labs/00-GETTING-STARTED.md](labs/00-GETTING-STARTED.md) and then [labs/Fabric-IQ-Banking-POC-UI-Walkthrough.md](labs/Fabric-IQ-Banking-POC-UI-Walkthrough.md). The `deploy/` scripts reproduce the historical `NorthwindModel` reference deployment and are retained for automation examples only.
-
-1. Build or validate the 10 gold tables with `00-foundation/nb_load_files_to_tables.ipynb`.
-2. Create or validate `IQModel`; run `01-semantic-model/nb_iqmodel_relationships.ipynb`; add and test `[Delinquent With Fraud]`.
-3. Validate the two LOB models if they are part of the session.
-4. Configure the ontology, graph, RTI, and one published data agent using the UI walkthrough.
-5. Capture current Spark, DAX, GQL, KQL, and data-agent outputs before declaring the demo validated.
+- No local CLI or Python installation is required for the notebook/UI attendee path when using the packaged sample data.
+- Optional developer automation requires signed-in Azure CLI and Python 3.x; the data generator is standard-library only.
 
 > Planning and agent grounding are covered in the main walkthrough. Governance and ALM are separate supporting labs.
 

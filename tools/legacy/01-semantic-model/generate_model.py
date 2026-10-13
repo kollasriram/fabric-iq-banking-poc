@@ -2,7 +2,8 @@
 # Column types were normalized so every Spark type maps to a Fabric-safe sourceProviderType.
 import os, json, uuid
 
-OUT = os.path.join(os.path.dirname(__file__), "NorthwindModel.SemanticModel")
+REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+OUT = os.path.join(REPO, "01-semantic-model", "NorthwindModel.SemanticModel")
 DEF = os.path.join(OUT, "definition")
 TBL = os.path.join(DEF, "tables")
 CONN = "YOUR_SQL_ENDPOINT.datawarehouse.fabric.microsoft.com"

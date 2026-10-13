@@ -11,7 +11,7 @@ Make the semantic model AI-ready so Copilot and the data agent answer accurately
 
 The current cross-domain target is `IQModel`. Historical TOM metadata tests under `tests/out/` apply to the retired `NorthwindModel` deployment; validate current metadata before presenting it.
 
-**User-configured (apply in the portal — draft generated for you):** run `python 02-prep-for-ai/generate_prep_for_ai.py` to produce `02-prep-for-ai/prep_for_ai_draft.md` (and `.json`), then:
+**User-configured (apply in the portal — draft generated for you):** review the packaged `02-prep-for-ai/prep_for_ai_draft.md` (and `.json`). Optionally regenerate it from the repo root with `python tools/legacy/02-prep-for-ai/generate_prep_for_ai.py`, then:
 1. Open `IQModel` → **Prep data for AI**.
 2. **AI instructions:** state that `customerKey` is the mastered identity and route the cross-domain question to `[Delinquent With Fraud]`.
 3. **Simplify the data schema:** exclude source IDs and technical keys while retaining the fields needed for relationships.

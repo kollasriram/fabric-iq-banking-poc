@@ -46,7 +46,7 @@ cd fabric-iq-banking-poc/deploy
 
 ### 2. Build events and ingest + run rules
 ```powershell
-python ../07-realtime-fraud/build_rti_events.py     # -> _rti_batches.json
+python ../tools/legacy/07-realtime-fraud/build_rti_events.py     # -> 07-realtime-fraud/_rti_batches.json
 ./08_ingest_rti_and_rules.ps1
 ```
 The script ingests the batches and runs all four rules, printing each rule's counts.
