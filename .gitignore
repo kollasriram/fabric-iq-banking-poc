@@ -1,5 +1,4 @@
 .venv/
-venv/
 __pycache__/
 *.py[cod]
 .ipynb_checkpoints/
@@ -12,4 +11,3 @@ __pycache__/
 *.p12
 *.pem
 *.key
-tests/out/run-*/
