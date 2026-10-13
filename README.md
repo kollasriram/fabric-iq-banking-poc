@@ -10,7 +10,7 @@ Follow **[the lab instructions](LAB.md)**. They include setup, data upload, note
 fabric-iq-banking-poc/
 ├── README.md
 ├── LAB.md         # step-by-step lab instructions
-├── Fabric-IQ-Banking-POC-Design.md  # historical design reference
+├── Fabric-IQ-Banking-POC-Design.md  # current scope + historical appendix
 ├── notebooks/     # four ordered notebooks + two optional model builders
 └── data/          # ready-to-upload synthetic data ZIP
 ```
@@ -37,4 +37,4 @@ Reference values are checkpoints, not proof that your environment has been valid
 
 ## Design Reference
 
-[Design document](Fabric-IQ-Banking-POC-Design.md): historical architecture rationale and feature inventory. Use the lab instructions above for the current execution steps, not the historical deployment plans in this document.
+[Design document](Fabric-IQ-Banking-POC-Design.md): current architecture, Core / Optional / Not Implemented coverage, and acceptance limits, with the original broader vision preserved in a historical appendix. Use the lab instructions above for execution; the appendix is not a deployment plan.

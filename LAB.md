@@ -1,13 +1,25 @@
 # Fabric IQ Banking POC — End-to-End UI Walkthrough
 
-Build or validate the **Northwind Financial POC in Microsoft Fabric**. The canonical environment is tenant **YOUR_TENANT.onmicrosoft.com** (`00000000-0000-0000-0000-000000000001`), workspace **`YOUR_WORKSPACE_NAME`** (`00000000-0000-0000-0000-000000000003`). Core acceptance is the headline cross-domain answer **13** in Spark and `IQModel` DAX, plus the Eventhouse fraud-rule results. Ontology graph (GQL) and data-agent answers extend that proof through optional preview branches. Record each checkpoint only after executing it in this workspace; core completion is not full-lab completion.
+Build or validate the **Northwind Financial POC in Microsoft Fabric**.
+
+The canonical environment is tenant **YOUR_TENANT.onmicrosoft.com** (`00000000-0000-0000-0000-000000000001`), workspace **`YOUR_WORKSPACE_NAME`** (`00000000-0000-0000-0000-000000000003`).
+
+Core acceptance is the headline cross-domain answer **13** in Spark and `IQModel` DAX, plus the Eventhouse fraud-rule results. Ontology graph (GQL) and data-agent answers extend that proof through optional preview branches.
+
+Record each checkpoint only after executing it in this workspace; core completion is not full-lab completion.
 
 **Audience:** facilitators and hands-on attendees.
+
 **Start here:** this is the single attendee guide, including prerequisites, sample-data upload, notebook execution, checkpoints, and troubleshooting. Use the supplied data ZIP and execute the notebooks in Fabric; no local Python or PowerShell is required.
+
 **Time:** ~3–4 hours for modules 0–8; the portal-only modules (Planning §10 and Agent grounding §11) add ~1–2 hours.
-**Note:** Fabric IQ features are in preview — screen names and button placement change. Treat each step as *intent + sequence* and adapt to the current UI. Where a step is inherently code (synthetic data, Spark transforms, DAX, GQL, KQL), you author it in a Fabric **browser** editor (notebook / model / query set) and paste the snippet from this repo — that is still the UI path.
+
+**Note:** Fabric IQ features are in preview — screen names and button placement change. Treat each step as *intent + sequence* and adapt to the current UI.
+
+Where a step is inherently code (synthetic data, Spark transforms, DAX, GQL, KQL), you author it in a Fabric **browser** editor (notebook / model / query set) and paste the snippet from this repo — that is still the UI path.
 
 Values to expect at each checkpoint (demo scale, default seed):
+
 `2300` mastered customers · `600` in both LOBs · `48,710` transactions · cross-domain **`13`** · fraud rules `500 / 194 / 148 / 1373` · Eventhouse rows `6,710`.
 
 ## Canonical names
@@ -30,7 +42,9 @@ Use these names throughout the run; do not switch workspaces or mix names from a
 
 ### Notebook Checklist
 
-Start with sections 0 and 1 below, upload the packaged synthetic data in section 2.2, then import the notebooks below into your configured workspace. Replace `YOUR_*` values and sample GUIDs, and set each notebook's default lakehouse where needed. Local Python and PowerShell are not attendee prerequisites. Follow this walkthrough's build order; do not run every notebook indiscriminately.
+Start with sections 0 and 1 below, upload the packaged synthetic data in section 2.2, then import the notebooks below into your configured workspace. Replace `YOUR_*` values and sample GUIDs, and set each notebook's default lakehouse where needed.
+
+Local Python and PowerShell are not attendee prerequisites. Follow this walkthrough's build order; do not run every notebook indiscriminately.
 
 | Walkthrough section | Notebook | Before running / expected checkpoint |
 |---|---|---|
@@ -59,7 +73,9 @@ These instructions assume only basic Fabric navigation. Use the following conven
 
 ### Core flow and preview branches
 
-**Core route:** sections **0 → 1 → 1a → 2 → 3.1 → 5 → Final proof**. Keep the existing build order when taking retained optional branches. The generated-ontology comparison exercise is removed at the user's request; section numbers are retained.
+**Core route:** sections **0 → 1 → 1a → 2 → 3.1 → 5 → Final proof**. Keep the existing build order when taking retained optional branches.
+
+The generated-ontology comparison exercise is removed at the user's request; section numbers are retained.
 
 | Label / section | Hands-on scope | If unavailable or blocked |
 |---|---|---|
@@ -74,7 +90,9 @@ These instructions assume only basic Fabric navigation. Use the following conven
 | **OPTIONAL PREVIEW**: section 10 | Fabric IQ Planning | Continue to section 11 or Final proof. Currently deferred in this run. |
 | **OPTIONAL INTEGRATION / PREVIEW-DEPENDENT**: section 11 | External grounding depends on a published Fabric Data Agent | Continue to Final proof. Currently skipped; this does not label every Foundry or Copilot Studio feature as preview. |
 
-Record each optional branch as **Passed**, **Pending/Blocked** (with the reason), or **Skipped**. A missing command, capacity restriction, unsupported binding, or failed generation is a branch exit, not a reason to repeat unchanged attempts. Preserve its artifacts and return to the route above. Preview availability and labels can change; check the current tenant UI before delivery.
+Record each optional branch as **Passed**, **Pending/Blocked** (with the reason), or **Skipped**. A missing command, capacity restriction, unsupported binding, or failed generation is a branch exit, not a reason to repeat unchanged attempts.
+
+Preserve its artifacts and return to the route above. Preview availability and labels can change; check the current tenant UI before delivery.
 
 ---
 
@@ -122,7 +140,9 @@ Record each optional branch as **Passed**, **Pending/Blocked** (with the reason)
 4. Confirm a **paid F2+ Fabric capacity or P1+ Power BI Premium capacity** is assigned for Copilot. PPU alone and trial capacity do not satisfy the Copilot portions of this lab.
 
 ### 0.2 Select the workspace
-For a new isolated lab, select **Workspaces → New workspace**, enter a lab name such as `Fabric-IQ-Banking-POC`, choose your authorized capacity under **Advanced / License mode**, and select **Apply**. Set `YOUR_WORKSPACE_NAME` and its workspace ID to that new workspace everywhere before proceeding. Creating a workspace does not create or upgrade a capacity. Otherwise, use an existing authorized workspace as follows.
+For a new isolated lab, select **Workspaces → New workspace**, enter a lab name such as `Fabric-IQ-Banking-POC`, choose your authorized capacity under **Advanced / License mode**, and select **Apply**. Set `YOUR_WORKSPACE_NAME` and its workspace ID to that new workspace everywhere before proceeding.
+
+Creating a workspace does not create or upgrade a capacity. Otherwise, use an existing authorized workspace as follows.
 
 1. In the left navigation, select **Workspaces**.
 2. In the workspace list, select **YOUR_WORKSPACE_NAME**. If it is not visible, use the workspace search box.
@@ -188,7 +208,9 @@ A mid-size retail bank that also runs its own card-payments processing, with **t
 | Loan | one funded loan | Principal, rate, term, current balance, days-past-due — the bank's credit exposure. |
 | DelinquencyEvent | one past-due event | Raised when a loan crosses 30/60/90 DPD — the credit-risk early warning. |
 
-**The hinge is Customer:** the same person is a cardholder *and* a borrower, but the two systems never shared an ID. Resolving them into one `customerKey` lets you ask what no single system can: *"which customers had a **fraud alert** on their card **and** are **delinquent** on a loan?"* → **13**.
+**The hinge is Customer:** the same person is a cardholder *and* a borrower, but the two systems never shared an ID.
+
+Resolving them into one `customerKey` lets you ask what no single system can: *"which customers had a **fraud alert** on their card **and** are **delinquent** on a loan?"* → **13**.
 
 ### Two source systems → one governed model
 - **Payments & Deposits** (`P-####`): customers, accounts, cards, merchants, transactions, fraud alerts, products, branches.
@@ -228,12 +250,16 @@ erDiagram
     dim_branch   ||--o{ dim_account       : "branchId"
 ```
 
-All 9 relationships are **many-to-one** (fact → dimension). `dim_customer` is the hub — joined by four facts: two from payments (transactions, fraud) and two from lending (loans, delinquency). Because `customerKey` unifies both systems, the headline question is one hop through `dim_customer`:
+All 9 relationships are **many-to-one** (fact → dimension). `dim_customer` is the hub — joined by four facts: two from payments (transactions, fraud) and two from lending (loans, delinquency).
+
+Because `customerKey` unifies both systems, the headline question is one hop through `dim_customer`:
 
 > *"Which delinquent borrowers also had fraud alerts?"* → **13** = `fact_fraud_alert` ∩ `fact_loan` ∩ `fact_delinquency` on `customerKey`.
 
 ### How gold is built (single layer, correct types)
-The build reads the uploaded CSVs and writes the **gold** star schema **directly** — there is **no bronze/silver layer**, because only gold is consumed by the semantic models and the ontology. Types are set explicitly: IDs = text, keys/codes = bigint, money = double, dates = timestamp, flags = boolean.
+The build reads the uploaded CSVs and writes the **gold** star schema **directly** — there is **no bronze/silver layer**, because only gold is consumed by the semantic models and the ontology.
+
+Types are set explicitly: IDs = text, keys/codes = bigint, money = double, dates = timestamp, flags = boolean.
 
 1. **`gold.dim_customer` (entity resolution):** union the payments-customer + lending-borrower **emails**, dedupe → 2,300 people; assign surrogate `customerKey = CUST-000001…`; left-join both sources back by email and `coalesce` attributes; add `hasDeposits` / `hasLoans` flags. Email is the match key; `truth_customer_crosswalk.csv` is only used to *score* the resolution, not to do it.
 2. **Dimensions** (`dim_merchant/dim_account/dim_product/dim_branch`) are projected with explicit types; `dim_date` is generated from distinct transaction dates.
@@ -245,7 +271,7 @@ The single design decision that makes the POC work: **resolve identity once in `
 ### When do you need the Eventstream? (batch vs real-time fraud)
 Two kinds of "fraud" in this hands-on — only one needs streaming:
 - **Analyzing fraud that already happened** (fraud loss rate, hub merchants, "delinquent borrowers with fraud alerts = 13") uses the **batch** data already in gold (`fact_transaction` / `fact_fraud_alert`) — **no Eventstream**. Covered by the semantic models, graph, and ontology.
-- **Detecting fraud on live transactions in seconds** (cross-border high-value, velocity, impossible travel, high-risk merchant) needs the **real-time** path: producer → **Eventstream** → **Eventhouse `LiveTransactions`** → **KQL rules**. This is **Module 7 / §5 (Real-Time Intelligence)**, and it's where the ontology's **time-series binding** on `Transaction` ties the live stream into the governed model so an **operations agent** can act (block card, open case).
+- **Fraud queries over event data** (cross-border high-value, velocity, impossible travel, high-risk merchant) use **Eventhouse `LiveTransactions` → manual KQL queries** in **Module 7 / §5**. The optional producer/Eventstream branch demonstrates ingestion, and Transaction's time-series binding exposes Eventhouse data to the ontology. The separate Operations Agent exercise uses one amount condition; detection latency, card blocking, and case creation are not validated or implemented here.
 
 ---
 
@@ -330,7 +356,9 @@ Direct Lake reads gold through the SQL endpoint, whose metadata is stale right a
 
 **Feature:** *Direct Lake semantic models* — Power BI models that query the gold Delta tables **directly** (import-mode speed, no refresh lag, no data copy), giving governed measures and business language that Copilot and the data agent reuse.
 
-The canonical cross-domain model is **`IQModel`**. It contains all 10 gold tables. The two narrower models remain useful because Prep for AI and Planning can be scoped to one business process.
+The canonical cross-domain model is **`IQModel`**. It contains all 10 gold tables.
+
+The two narrower models remain useful because Prep for AI and Planning can be scoped to one business process.
 
 | Model | Purpose | Tables |
 |---|---|---|
@@ -369,17 +397,41 @@ The canonical cross-domain model is **`IQModel`**. It contains all 10 gold table
 20. Confirm the displayed value is **13**.
 
 ### 3.2 Retain or rebuild the LOB models
-**Verified UI continuation (YOUR_WORKSPACE_NAME):** `PaymentsDepositsModel` was created from **NorthwindLakehouse → New semantic model**, selecting the eight Payments tables in `gold` and excluding the two lending facts. Its item ID is `00000000-0000-0000-0000-000000000008`. Do not run the creation notebook unchanged against this existing model: it uses `overwrite=True`.
+**Verified UI continuation (YOUR_WORKSPACE_NAME):** `PaymentsDepositsModel` was created from **NorthwindLakehouse → New semantic model**, selecting the eight Payments tables in `gold` and excluding the two lending facts. Its item ID is `00000000-0000-0000-0000-000000000008`.
 
-Nine measures were persisted using **DAX query view → Update model with changes (9) → Update model**: Transaction Count, Transaction Amount, Fee Income, Fraud Txn Count, Fraud Loss Amount, Fraud Loss Rate, Deposit Balance, Open Fraud Alerts, and Customers With Fraud Alert. A subsequent `INFO.VIEW.MEASURES()` returned all nine saved expressions. A query without `DEFINE` returned **48,710 transactions**, **126,801,285.56 deposits**, and **76.9730% fraud-loss rate**, using `FORMAT([Fraud Loss Rate], "0.0000%")`. This is persisted-model evidence; the percentage formatting was query-local, not a saved format string.
+Do not run the creation notebook unchanged against this existing model: it uses `overwrite=True`.
 
-Seven relationships were applied through **TMDL View → Preview → Apply**, with **Problems 0** and **Successfully applied TMDL script**: TxnCustomer, TxnMerchant, TxnAccount, TxnDate, AlertCustomer, AccountProduct, and AccountBranch. The first regional query reported that the new account-to-branch relationship required recalculation. **Refresh now → Refresh history** then showed **On demand, Completed**, from **10/10/2026 7:03:27 PM to 7:03:30 PM**.
+Nine measures were persisted using **DAX query view → Update model with changes (9) → Update model**: Transaction Count, Transaction Amount, Fee Income, Fraud Txn Count, Fraud Loss Amount, Fraud Loss Rate, Deposit Balance, Open Fraud Alerts, and Customers With Fraud Alert.
 
-**Verified UI continuation (2026-10-11):** the existing `YOUR_CAPACITY_NAME` capacity was resumed with user approval; Azure portal showed **Active**, **F4**, **West US 3**, with no SKU change. NorthwindLakehouse loaded successfully afterward. A Payments DAX query without `DEFINE` succeeded in **4221.3 ms**, confirming **8 tables, 9 measures, 7 relationships**, **48,710 transactions**, **126,801,285.56 deposits**, and **76.9730% fraud-loss rate**. `SUMMARIZECOLUMNS(dim_branch[region], "Deposits", [Deposit Balance])` returned Southeast **31,934,971.93**, Northeast **44,284,238.70**, Southwest **13,663,770.51**, Midwest **11,231,275.81**, and West **25,687,028.61**. The five totals reconcile to the saved deposit balance, with no recalculation error. Deposits are a current balance snapshot, not monthly history. Saved measure formats, folders, hierarchies, and Payments Prep for AI remain pending; TMDL still reports Viewing mode and requires Editing before Apply.
+A subsequent `INFO.VIEW.MEASURES()` returned all nine saved expressions. A query without `DEFINE` returned **48,710 transactions**, **126,801,285.56 deposits**, and **76.9730% fraud-loss rate**, using `FORMAT([Fraud Loss Rate], "0.0000%")`.
 
-**Payments metadata completed (2026-10-11, later integrated-browser continuation):** the existing model opened in **Editing**. Used **Model view -> Data field search -> select measure -> Properties**, with read-only DAX metadata checks between edits. Saved `0.00` for Deposit Balance, Transaction Amount, Fee Income, and Fraud Loss Amount; preserved `0` for Transaction Count, Fraud Txn Count, Open Fraud Alerts, and Customers With Fraud Alert; saved `0.0000%;-0.0000%;0.0000%` for Fraud Loss Rate. Assigned **Deposits** to Deposit Balance, **Payments** to Transaction Count/Transaction Amount/Fee Income, and **Fraud** to the five fraud measures.
+This is persisted-model evidence; the percentage formatting was query-local, not a saved format string.
 
-Created **Date Hierarchy** in `dim_date`, using `year -> quarter -> month -> day`, and **Branch Geography** in `dim_branch`, using `region -> name`. Used the column's **More options -> Create hierarchy**, renamed it in Properties, added existing columns with **Select a column to add level**, and selected **Apply Level Changes**. A full browser reload and fresh DAX confirmed all nine saved formats/folders, **8 tables, 9 measures, 7 relationships, 2 hierarchies, and 6 levels**. The unchanged baseline was **48,710 transactions**, **126,801,285.56 deposits**, and raw fraud-loss ratio **0.769730080106604**. This supersedes the earlier Payments metadata/editing gap. No measures, tables, relationships, source bindings, or permissions were replaced.
+Seven relationships were applied through **TMDL View → Preview → Apply**, with **Problems 0** and **Successfully applied TMDL script**: TxnCustomer, TxnMerchant, TxnAccount, TxnDate, AlertCustomer, AccountProduct, and AccountBranch. The first regional query reported that the new account-to-branch relationship required recalculation.
+
+**Refresh now → Refresh history** then showed **On demand, Completed**, from **10/10/2026 7:03:27 PM to 7:03:30 PM**.
+
+**Verified UI continuation (2026-10-11):** the existing `YOUR_CAPACITY_NAME` capacity was resumed with user approval; Azure portal showed **Active**, **F4**, **West US 3**, with no SKU change. NorthwindLakehouse loaded successfully afterward.
+
+A Payments DAX query without `DEFINE` succeeded in **4221.3 ms**, confirming **8 tables, 9 measures, 7 relationships**, **48,710 transactions**, **126,801,285.56 deposits**, and **76.9730% fraud-loss rate**. `SUMMARIZECOLUMNS(dim_branch[region], "Deposits", [Deposit Balance])` returned Southeast **31,934,971.93**, Northeast **44,284,238.70**, Southwest **13,663,770.51**, Midwest **11,231,275.81**, and West **25,687,028.61**.
+
+The five totals reconcile to the saved deposit balance, with no recalculation error. Deposits are a current balance snapshot, not monthly history.
+
+Saved measure formats, folders, hierarchies, and Payments Prep for AI remain pending; TMDL still reports Viewing mode and requires Editing before Apply.
+
+**Payments metadata completed (2026-10-11, later integrated-browser continuation):** the existing model opened in **Editing**. Used **Model view -> Data field search -> select measure -> Properties**, with read-only DAX metadata checks between edits.
+
+Saved `0.00` for Deposit Balance, Transaction Amount, Fee Income, and Fraud Loss Amount; preserved `0` for Transaction Count, Fraud Txn Count, Open Fraud Alerts, and Customers With Fraud Alert; saved `0.0000%;-0.0000%;0.0000%` for Fraud Loss Rate.
+
+Assigned **Deposits** to Deposit Balance, **Payments** to Transaction Count/Transaction Amount/Fee Income, and **Fraud** to the five fraud measures.
+
+Created **Date Hierarchy** in `dim_date`, using `year -> quarter -> month -> day`, and **Branch Geography** in `dim_branch`, using `region -> name`.
+
+Used the column's **More options -> Create hierarchy**, renamed it in Properties, added existing columns with **Select a column to add level**, and selected **Apply Level Changes**.
+
+A full browser reload and fresh DAX confirmed all nine saved formats/folders, **8 tables, 9 measures, 7 relationships, 2 hierarchies, and 6 levels**. The unchanged baseline was **48,710 transactions**, **126,801,285.56 deposits**, and raw fraud-loss ratio **0.769730080106604**.
+
+This supersedes the earlier Payments metadata/editing gap. No measures, tables, relationships, source bindings, or permissions were replaced.
 
 1. Return to **Workspaces → YOUR_WORKSPACE_NAME** and search for `PaymentsDepositsModel` and `LendingCreditRiskModel`.
 2. If either model exists, open it and record its tables, measures, and relationships before deciding to rebuild it. Do not overwrite an existing model casually.
@@ -409,9 +461,13 @@ Created **Date Hierarchy** in `dim_date`, using `year -> quarter -> month -> day
 
 **Workflow:** select the AI schema -> build and register report visuals -> review AI instructions -> test Copilot -> approve the model. Keep existing saved work; the model owner reviews and applies Prep changes in the UI.
 
-**Save each change:** select **Apply**, wait for saving to finish, close and reopen the Prep dialog, and confirm the saved content. Close and reopen Copilot before testing. Save the report separately without overwriting another report.
+**Save each change:** select **Apply**, wait for saving to finish, close and reopen the Prep dialog, and confirm the saved content. Close and reopen Copilot before testing.
 
-**Test setup:** open standalone **Power BI Copilot**, attach the exact model from **YOUR_WORKSPACE_NAME**, and ask the prompts below. For a report-viewing Copilot test of verified answers, use the standard data-question experience with enhanced **Fabric IQ** off. Keep tests read-only.
+Save the report separately without overwriting another report.
+
+**Test setup:** open standalone **Power BI Copilot**, attach the exact model from **YOUR_WORKSPACE_NAME**, and ask the prompts below. For a report-viewing Copilot test of verified answers, use the standard data-question experience with enhanced **Fabric IQ** off.
+
+Keep tests read-only.
 
 If a step cannot be completed, record its current result and continue with the next available exercise. Leave ownership, permissions, tenant settings, and irreversible conversions unchanged.
 
@@ -432,38 +488,109 @@ If a step cannot be completed, record its current result and continue with the n
 
 ### 4.1 PaymentsDepositsModel
 
-**Latest approval readback (2026-10-12, integrated browser):** at the user's explicit request, opened **YOUR_WORKSPACE_NAME -> PaymentsDepositsModel -> More options -> Settings -> Copilot** and changed **Approved for Copilot** from **Off** to **On**. This settings pane saved the toggle without a separate **Apply** button. Closing and reopening the model settings, then selecting **Copilot**, confirmed **Approved for Copilot: On**. The separate **Copilot and Microsoft's MCP tools** setting remained **On**, unchanged. Saved approval is complete; the subsequent propagation test is recorded below. No AI instructions, schema selections, verified answers, permissions, or published agent were changed. Earlier pending-approval notes below are historical.
+**Latest approval readback (2026-10-12, integrated browser):** at the user's explicit request, opened **YOUR_WORKSPACE_NAME -> PaymentsDepositsModel -> More options -> Settings -> Copilot** and changed **Approved for Copilot** from **Off** to **On**. This settings pane saved the toggle without a separate **Apply** button.
 
-**Approval propagation check passed (2026-10-12, integrated browser):** opened a fresh standalone Power BI Copilot chat and attached **PaymentsDepositsModel** from **YOUR_WORKSPACE_NAME**. The native attachment link confirmed workspace ID `00000000-0000-0000-0000-000000000003` and model ID `00000000-0000-0000-0000-000000000008`. Asked **What is the total transaction count?**; the completed data response returned **48,710** without the earlier organization-approval/unapproved-data warning. Approval propagation passed for this fresh model-backed response. A separate notice remained: **Copilot is currently syncing with the data model. Results may be inconsistent until the sync is finished.** Do not treat approval as clearing model synchronization or certifying answer accuracy. No settings were changed or additional acceptance cases run during this check.
+Closing and reopening the model settings, then selecting **Copilot**, confirmed **Approved for Copilot: On**. The separate **Copilot and Microsoft's MCP tools** setting remained **On**, unchanged.
 
-**Latest saved-state check (2026-10-11):** the owner applied the five source-alias exclusions in step 3. Closing and reopening Prep confirmed all five unchecked with **Apply** disabled. All nine business measures remain selected; the last two were checked using the schema search. The **1,794-character** AI instructions also remain saved and unchanged. Schema prompt tests, two verified answers, approval, and final Copilot acceptance are still pending. No verified answers or approval were applied during this continuation.
+Saved approval is complete; the subsequent propagation test is recorded below. No AI instructions, schema selections, verified answers, permissions, or published agent were changed.
 
-**Latest Payments retest (2026-10-11, subsequent authorized F4 resume):** standalone Copilot was explicitly attached to PaymentsDepositsModel in YOUR_WORKSPACE_NAME. Readback confirmed unchanged 1,794-character instructions, all five aliases excluded, all nine measures selected, and Apply disabled. Fraud loss rate returned **76.9730%**, with **Fraud Loss Rate** and **Filters applied: None** in the evidence panel. Regional deposits matched all five exact baseline values and total **126,801,285.56**; the fresh panel showed **region / Deposit Balance**, but did not identify the region's owning table. A separate monthly-history prompt correctly explained that only current balances are available. The delinquent-borrower/fraud prompt correctly refused missing lending data but still did not name IQModel or NorthwindDataAgent. The excluded paymentsCustomerId prompt was refused, but its suggested replacement incorrectly used **customer_key**, not the actual **customerKey**; treat identity guidance as a partial result, not a clean pass. The first numeric response still showed a syncing warning, and numeric answers showed the unapproved-data warning; the native Prep owner warning also remained. Verified answers remained empty. No model, Prep configuration, approval, or report changes were made. Capacity pause was requested immediately after testing; see Final proof for the final verified state.
+Earlier pending-approval notes below are historical.
 
-**Report-building result (2026-10-11):** created the new [PaymentsDeposits AI Validation report](https://app.fabric.microsoft.com/groups/00000000-0000-0000-0000-000000000003/reports/00000000-0000-0000-0000-000000000016/ea5caf4c956a5e303786?experience=fabric-developer) through **PaymentsDepositsModel -> More options -> Create report** in **YOUR_WORKSPACE_NAME**. Saved report ID: `00000000-0000-0000-0000-000000000016`. After a full browser reload, the card still displayed **76.9730%**, and the descending branch-region chart retained all five exact baseline values, totaling **126,801,285.56**. The edit pane confirmed **dim_account[Deposit Balance]** and **dim_branch[region]**; the two visuals were positioned without overlap and no restrictive filters were added. The report was saved under a new name; the semantic model and existing items were not changed. **Neither visual has been registered as a verified answer**: owner review/Apply and matching tests remain pending. F4 was already Active when the session opened; a pause was requested immediately after report verification.
+**Approval propagation check passed (2026-10-12, integrated browser):** opened a fresh standalone Power BI Copilot chat and attached **PaymentsDepositsModel** from **YOUR_WORKSPACE_NAME**. The native attachment link confirmed workspace ID `00000000-0000-0000-0000-000000000003` and model ID `00000000-0000-0000-0000-000000000008`.
 
-**Earlier verified-answer UI check (2026-10-11):** opened the saved report in **Edit** mode, selected each visual, and inspected its native **More options** menu. Both the fraud-rate card and deposit chart exposed **Set up a verified answer (preview)**, but the command was **disabled** (`aria-disabled=true`). No setup dialog was opened, no definitions were entered or applied, and no report/model changes were saved. The report was returned to reading mode. The cause of that disabled state was not established; do not assume capacity, permissions, or the earlier owner warning was the cause. This is historical evidence, superseded for the card by the successful retry below.
+Asked **What is the total transaction count?**; the completed data response returned **48,710** without the earlier organization-approval/unapproved-data warning. Approval propagation passed for this fresh model-backed response.
 
-**Earlier verified-answer UI retry (2026-10-12):** entered **Edit** mode using a normal click, selected the fraud-rate card, and opened its native **More options** menu. **Set up a verified answer (preview)** was now enabled (`aria-disabled=false`). A normal click opened **Prep data for AI -> Verified answers**, with the **Fraud Loss Rate** visual at **76.9730%**, a phrase-entry area, Copilot suggestions, and **Apply**. No phrases were added and **Apply** was not clicked by the assistant. The card setup pane was left open for owner review. The deposit chart was not retried in this check. Neither visual was registered at that point; subsequent owner registration is recorded below. The change in availability does not establish why the earlier command was disabled.
+A separate notice remained: **Copilot is currently syncing with the data model. Results may be inconsistent until the sync is finished.** Do not treat approval as clearing model synchronization or certifying answer accuracy.
 
-**Earlier card-only saved readback (2026-10-12):** after the owner reported completing **Add -> Apply**, the previously open pane initially showed a stale empty list. Closing and reopening the native setup pane refreshed the data. **All verified answers** then listed **What is our fraud loss rate? -- 1 phrase**. Opening that saved entry confirmed the phrase **What is our fraud loss rate?** and the **Fraud Loss Rate** card at **76.9730%**. **Card registration passed (owner-configured; assistant readback only).** The assistant did not add phrases or click Apply. The deposit-chart answer was not registered at that point; its subsequent owner registration is recorded below.
+No settings were changed or additional acceptance cases run during this check.
 
-**Latest two-answer saved readback (2026-10-12):** after the owner completed the deposit chart's **Add -> Apply**, closing and reopening its native setup pane refreshed the saved data. **All verified answers** listed both **What is our fraud loss rate? -- 1 phrase** and **Show deposits by branch region -- 1 phrase**. Opening the saved chart entry confirmed its phrase and the deposit visual with **Northeast, Southeast, West, Southwest, Midwest**. The card's saved visual at **76.9730%** was confirmed in the earlier readback above. **Both verified-answer registrations passed (owner-configured; assistant readback only).** The assistant entered no phrases and clicked no Apply. Copilot matched-phrase/checkmark/filter tests remain unverified; saved registration alone does not complete the full acceptance gate.
+**Latest saved-state check (2026-10-11):** the owner applied the five source-alias exclusions in step 3. Closing and reopening Prep confirmed all five unchecked with **Apply** disabled.
 
-**Verified-answer Copilot tests passed (2026-10-12):** in a fresh standalone Power BI Copilot chat, attached the exact **PaymentsDepositsModel** from **YOUR_WORKSPACE_NAME**; the native content link confirmed model ID `00000000-0000-0000-0000-000000000008`. Both saved questions returned **Your question matched a verified answer**, with the corresponding exact phrase and the native `checkmark_circle_20_regular` indicator. **What is our fraud loss rate?** returned the **76.9730%** card; **How Copilot arrived at this** showed **Data used: Fraud Loss Rate; Filters applied: None**. **Show deposits by branch region** returned Northeast, Southeast, West, Southwest, Midwest; its explanation showed **Data used: region, Deposit Balance; Filters applied: None**. The plotted numeric labels matched **44,284,238.70; 31,934,971.93; 25,687,028.61; 13,663,770.51; 11,231,275.81**, totaling **126,801,285.56**. No model-sync or current-owner warning was displayed in these two responses. A first malformed input submitted only **rate?** and received a clarification; it is not a metric acceptance test. No model, report, verified-answer, or approval configuration was changed by these runtime checks. These passes cover the two saved phrases without extra filters, not optional Northeast filtering, excluded aliases, named-target routing, or final approval. The owner confirmed F4 was running; Azure's native capacity overview remained unavailable, so no duplicate resume was sent.
+All nine business measures remain selected; the last two were checked using the schema search. The **1,794-character** AI instructions also remain saved and unchanged.
 
-**Demo functionality acceptance (2026-10-12, user-directed):** prioritize working UI workflows and responses rather than exhaustive result validation. The two saved verified-answer phrases matched successfully in standalone Copilot. Subsequent transaction-count questions requesting `dim_customer[paymentsCustomerId]` and `dim_customer[borrowerId]` returned data, and their displayed DAX used `dim_customer[customerKey]` instead of the excluded aliases. The prose still conflated these identities and showed unapproved-data warnings; retain those caveats without treating them as demo blockers. Further alias, optional-filter, and semantic-correctness checks are deferred, not passed. This demo scope does not certify production readiness, change the owner-only approval requirement, or authorize publication/configuration changes. Agent monitoring and notification delivery remain separate capabilities and must not be claimed without observed evidence.
+Schema prompt tests, two verified answers, approval, and final Copilot acceptance are still pending. No verified answers or approval were applied during this continuation.
+
+**Latest Payments retest (2026-10-11, subsequent authorized F4 resume):** standalone Copilot was explicitly attached to PaymentsDepositsModel in YOUR_WORKSPACE_NAME. Readback confirmed unchanged 1,794-character instructions, all five aliases excluded, all nine measures selected, and Apply disabled.
+
+Fraud loss rate returned **76.9730%**, with **Fraud Loss Rate** and **Filters applied: None** in the evidence panel. Regional deposits matched all five exact baseline values and total **126,801,285.56**; the fresh panel showed **region / Deposit Balance**, but did not identify the region's owning table.
+
+A separate monthly-history prompt correctly explained that only current balances are available. The delinquent-borrower/fraud prompt correctly refused missing lending data but still did not name IQModel or NorthwindDataAgent.
+
+The excluded paymentsCustomerId prompt was refused, but its suggested replacement incorrectly used **customer_key**, not the actual **customerKey**; treat identity guidance as a partial result, not a clean pass.
+
+The first numeric response still showed a syncing warning, and numeric answers showed the unapproved-data warning; the native Prep owner warning also remained. Verified answers remained empty.
+
+No model, Prep configuration, approval, or report changes were made. Capacity pause was requested immediately after testing; see Final proof for the final verified state.
+
+**Report-building result (2026-10-11):** created the new [PaymentsDeposits AI Validation report](https://app.fabric.microsoft.com/groups/00000000-0000-0000-0000-000000000003/reports/00000000-0000-0000-0000-000000000016/ea5caf4c956a5e303786?experience=fabric-developer) through **PaymentsDepositsModel -> More options -> Create report** in **YOUR_WORKSPACE_NAME**. Saved report ID: `00000000-0000-0000-0000-000000000016`.
+
+After a full browser reload, the card still displayed **76.9730%**, and the descending branch-region chart retained all five exact baseline values, totaling **126,801,285.56**. The edit pane confirmed **dim_account[Deposit Balance]** and **dim_branch[region]**; the two visuals were positioned without overlap and no restrictive filters were added.
+
+The report was saved under a new name; the semantic model and existing items were not changed. **Neither visual has been registered as a verified answer**: owner review/Apply and matching tests remain pending.
+
+F4 was already Active when the session opened; a pause was requested immediately after report verification.
+
+**Earlier verified-answer UI check (2026-10-11):** opened the saved report in **Edit** mode, selected each visual, and inspected its native **More options** menu. Both the fraud-rate card and deposit chart exposed **Set up a verified answer (preview)**, but the command was **disabled** (`aria-disabled=true`).
+
+No setup dialog was opened, no definitions were entered or applied, and no report/model changes were saved. The report was returned to reading mode.
+
+The cause of that disabled state was not established; do not assume capacity, permissions, or the earlier owner warning was the cause. This is historical evidence, superseded for the card by the successful retry below.
+
+**Setup retry (2026-10-12):** the fraud card's **Set up a verified answer** command became available. The pane showed **76.9730%**; the assistant left registration to the owner.
+
+The earlier disabled state remained unexplained.
+
+**Card registration passed (2026-10-12):** after the owner selected **Add -> Apply**, reopening the pane confirmed **What is our fraud loss rate?** and the **76.9730%** card. The deposit answer was not yet registered.
+
+**Both registrations passed (2026-10-12):** the owner then registered **Show deposits by branch region**. Reopening the pane confirmed both saved phrases, one phrase per visual.
+
+The assistant verified saved state only; runtime matching was tested separately below.
+
+**Copilot matching passed (2026-10-12):** a fresh standalone chat attached to **PaymentsDepositsModel** returned **Your question matched a verified answer** and a checkmark for both exact phrases.
+
+- **Fraud loss rate:** **76.9730%**; evidence used **Fraud Loss Rate**, with no filters.
+- **Deposits by branch region:** all five regional values matched the baseline, totaling **126,801,285.56**; evidence used **region / Deposit Balance**, with no filters.
+
+No sync/owner warning appeared, and no configuration changed. These passes cover the two unfiltered phrases only, not optional filters, alias handling, routing, or approval.
+
+The incomplete prompt **rate?** was excluded from acceptance.
+
+**Demo functionality acceptance (2026-10-12, user-directed):** prioritize working UI workflows and responses rather than exhaustive result validation. The two saved verified-answer phrases matched successfully in standalone Copilot.
+
+Subsequent transaction-count questions requesting `dim_customer[paymentsCustomerId]` and `dim_customer[borrowerId]` returned data, and their displayed DAX used `dim_customer[customerKey]` instead of the excluded aliases. The prose still conflated these identities and showed unapproved-data warnings; retain those caveats without treating them as demo blockers.
+
+Further alias, optional-filter, and semantic-correctness checks are deferred, not passed. This demo scope does not certify production readiness, change the owner-only approval requirement, or authorize publication/configuration changes.
+
+Agent monitoring and notification delivery remain separate capabilities and must not be claimed without observed evidence.
 
 <details>
 <summary>Recorded run results</summary>
 
-**Latest readiness check (2026-10-11, integrated browser):** the original **1,561-character** instructions persisted after model reload. The owner subsequently applied the **1,794-character** scope-handoff revision below; it also persisted after full reload with Apply disabled and no pending save status. Standalone Copilot, explicitly grounded on this Payments model in **YOUR_WORKSPACE_NAME**, displayed **76.9730%** for `[Fraud Loss Rate]` with no filters; its text rounded this to about 77%. The follow-up prompt *Show deposits by branch region with exact balances and the grand total* returned a matrix with Northeast **44,284,238.70**, Southeast **31,934,971.93**, West **25,687,028.61**, Southwest **13,663,770.51**, Midwest **11,231,275.81**, and total **126,801,285.56**. **How Copilot arrived at this** reported `[Deposit Balance]`, region, and no filters; **Explore the data** showed the selected region under `dim_branch`. Copilot correctly refused to invent monthly historical deposit balances. The original borrower-list prompt was refused on identifiable-person grounds; the aggregate prompt *How many delinquent borrowers also had fraud alerts?* correctly explained that this Payments model has no delinquency data both before and after the revision, but did not route to IQModel or NorthwindDataAgent. Scope limitation passed; named-target routing did not. Numeric answers still showed syncing and unapproved-data warnings, so final acceptance remains provisional. Native schema inspection found all nine business measures and all five proposed source-ID aliases selected; Apply was disabled. The schema-review handoff was skipped and a subsequent readback confirmed no selection changes. The **Verified answers** pane was empty. Schema refinement, verified answers, named-target routing verification, approval, and complete live acceptance remain pending; generated numeric answers are not proof of verified-answer matching. The owner warning observed during the routing retest is recorded below without any ownership change.
+**Latest readiness check (2026-10-11, integrated browser):** the original **1,561-character** instructions persisted after model reload. The owner subsequently applied the **1,794-character** scope-handoff revision below; it also persisted after full reload with Apply disabled and no pending save status.
+
+Standalone Copilot, explicitly grounded on this Payments model in **YOUR_WORKSPACE_NAME**, displayed **76.9730%** for `[Fraud Loss Rate]` with no filters; its text rounded this to about 77%.
+
+The follow-up prompt *Show deposits by branch region with exact balances and the grand total* returned a matrix with Northeast **44,284,238.70**, Southeast **31,934,971.93**, West **25,687,028.61**, Southwest **13,663,770.51**, Midwest **11,231,275.81**, and total **126,801,285.56**.
+
+**How Copilot arrived at this** reported `[Deposit Balance]`, region, and no filters; **Explore the data** showed the selected region under `dim_branch`. Copilot correctly refused to invent monthly historical deposit balances.
+
+The original borrower-list prompt was refused on identifiable-person grounds; the aggregate prompt *How many delinquent borrowers also had fraud alerts?* correctly explained that this Payments model has no delinquency data both before and after the revision, but did not route to IQModel or NorthwindDataAgent.
+
+Scope limitation passed; named-target routing did not. Numeric answers still showed syncing and unapproved-data warnings, so final acceptance remains provisional.
+
+Native schema inspection found all nine business measures and all five proposed source-ID aliases selected; Apply was disabled. The schema-review handoff was skipped and a subsequent readback confirmed no selection changes.
+
+The **Verified answers** pane was empty. Schema refinement, verified answers, named-target routing verification, approval, and complete live acceptance remain pending; generated numeric answers are not proof of verified-answer matching.
+
+The owner warning observed during the routing retest is recorded below without any ownership change.
 
 </details>
 
 **Step 1 — open the pane.** In **YOUR_WORKSPACE_NAME**, open the existing **`PaymentsDepositsModel`** -> **Prep data for AI**. If an irreversible conversion warning or unavailable tabs appear, record the gate and stop without accepting the conversion.
 
-**Step 2 — review AI instructions.** Open **Add AI instructions** and compare the saved text with the block below. This **1,794-character** block is already saved on the Payments model. For a new lab model, the owner reviews the text, enters it, and selects **Apply**; preserve any unrelated existing instructions.
+**Step 2 — review AI instructions.** Open **Add AI instructions** and compare the saved text with the block below. This **1,794-character** block is already saved on the Payments model.
+
+For a new lab model, the owner reviews the text, enters it, and selects **Apply**; preserve any unrelated existing instructions.
 ```text
 Scope: Payments & Deposits only: card transactions, deposit accounts, and fraud alerts.
 
@@ -492,7 +619,13 @@ Terminology and interpretation
 <details>
 <summary>Recorded routing retest</summary>
 
-**Routing revision result:** the owner applied the revised scope bullet above; fresh readback after full model reload retained all 1,794 characters with Apply disabled. After reopening standalone Copilot and attaching the exact Payments model, *How many delinquent borrowers also had fraud alerts?* again explained the lack of lending/delinquency data and returned no count, but still did not name IQModel or NorthwindDataAgent. Named-target routing therefore remains unverified, not fixed. The response also mentioned a possible data update, and the UI displayed *It appears this model does not have a current owner. Please assign ownership of this semantic model and try again.* Record this message without assuming its root cause or changing ownership; ownership and permissions remain outside the approved scope. Do not keep rewriting instructions or repeatedly testing while propagation/ownership status is unresolved.
+**Routing revision result:** the owner applied the revised scope bullet above; fresh readback after full model reload retained all 1,794 characters with Apply disabled.
+
+After reopening standalone Copilot and attaching the exact Payments model, *How many delinquent borrowers also had fraud alerts?* again explained the lack of lending/delinquency data and returned no count, but still did not name IQModel or NorthwindDataAgent. Named-target routing therefore remains unverified, not fixed.
+
+The response also mentioned a possible data update, and the UI displayed *It appears this model does not have a current owner.
+
+Please assign ownership of this semantic model and try again.* Record this message without assuming its root cause or changing ownership; ownership and permissions remain outside the approved scope. Do not keep rewriting instructions or repeatedly testing while propagation/ownership status is unresolved.
 
 </details>
 
@@ -516,7 +649,9 @@ Terminology and interpretation
 8. Title the chart **Deposit Balance by Branch Region**, sort it by Deposit Balance descending, and arrange the two visuals without overlap. Compare the five bars with the baseline: Northeast **44,284,238.70**, Southeast **31,934,971.93**, West **25,687,028.61**, Southwest **13,663,770.51**, Midwest **11,231,275.81**. Use the visual's **Show as a table** command to check exact values when labels are abbreviated; the total is **126,801,285.56**.
 9. Select **Save**, use a new name such as **PaymentsDeposits AI Validation**, and confirm the destination is **YOUR_WORKSPACE_NAME**. Do not overwrite an existing report. Reopen the saved report and confirm both visuals and their fields persist. Record its name/link separately from verified-answer status.
 
-**4b. Owner-configured verified answers.** Creating the report does not register verified answers. The owner reviews and applies these definitions in the native Power BI UI; the agent does not automatically author them. If capacity was paused after report creation, obtain authorization for a separate resume before this step and pause again after completion.
+**4b. Owner-configured verified answers.** Creating the report does not register verified answers.
+
+The owner reviews and applies these definitions in the native Power BI UI; the agent does not automatically author them. If capacity was paused after report creation, obtain authorization for a separate resume before this step and pause again after completion.
 
 - **Register each visual:** select the visual in report **Edit** mode -> **... -> Set up a verified answer**. Review **Applied to this visual**, clear unintended filters, add the following phrases, and select **Apply**:
   - **Card `[Fraud Loss Rate]`:** `What is our fraud loss rate?` · `fraud loss rate` · `What percentage of transaction amount is lost to fraud?` · `share of spend lost to fraud` · `Show the card fraud loss percentage`. Avoid `how much do we lose to card fraud`, which can mean `[Fraud Loss Amount]` rather than a rate.
@@ -529,7 +664,9 @@ Terminology and interpretation
 3. Select **Apply**, save the report, and reopen Copilot.
 4. Ask *Show deposits by branch region for Northeast.* Check the verified answer, region filter, and **44,284,238.70** result.
 
-**Step 5 — checkpoint.** Ask Copilot *on this model* *"what's our fraud loss rate?"* -> matches `[Fraud Loss Rate]`: **76.9730%**, or **76.97%** rounded to two decimal places. The raw ratio is **0.769730080106604**, not 0.77%. Ask for deposits by branch region and compare with the five regional totals in section 3.2; do not interpret the balance snapshot as monthly history.
+**Step 5 — checkpoint.** Ask Copilot *on this model* *"what's our fraud loss rate?"* -> matches `[Fraud Loss Rate]`: **76.9730%**, or **76.97%** rounded to two decimal places. The raw ratio is **0.769730080106604**, not 0.77%.
+
+Ask for deposits by branch region and compare with the five regional totals in section 3.2; do not interpret the balance snapshot as monthly history.
 
 **Run these acceptance cases after the relevant owner-applied save:**
 1. Ask *Show deposits by branch region.* Check `[Deposit Balance]`, `dim_branch[region]`, and the five regional totals from section 3.2.
@@ -551,7 +688,15 @@ Terminology and interpretation
 | Verified answers | two saved definitions; each trigger produces verified checkmark, matched phrase, correct fields/filters/value | Passed for both saved phrases in standalone Copilot: both definitions persisted, exact matched phrases, native checkmarks, correct visuals/values, expected fields, Filters applied None; optional extra filtering not tested |
 | Approval | authorized approval saved and reopened, followed by propagated status | Passed (2026-10-12): Approved for Copilot On after reopening Settings; fresh standalone Copilot transaction-count response returned 48,710 without the organization-approval warning; separate model-sync notice remains |
 
-**Expanded correctness checks (2026-10-12): owner-accepted completion with waivers.** Browser tools worked and 27 of the 28 cases were executed. **26 passed**, including V01's literal standalone verified-answer match and checkmark for `Show deposits by branch region`, using region and saved Deposit Balance with no filters. M01 returned the correct **76.9730%** from saved `[Fraud Loss Rate]`, but standalone verified-answer matching remained unconfirmed. S03's fresh IQModel/Data Agent comparison was not run. B01 exposed `EVALUATE ROW("Total Transaction Count", [Transaction Count])` and **48,710**; B02 exposed `EVALUATE ROW("Total Current Deposit Balance", [Deposit Balance])` and **126,801,285.56**. F06 exposed July 1 inclusive / August 1 exclusive filters on `dim_date[date]` and **12,492**, matching an independent native DAX query. The owner waived remaining checks and accepted the code for publication; waivers are not passes. Historical observations remain separate. Owner-configured Prep, verified answers, published agents, and Planning were not changed.
+**Expanded correctness checks (2026-10-12): owner-accepted completion with waivers.** Browser tools worked and 27 of the 28 cases were executed. **26 passed**, including V01's literal standalone verified-answer match and checkmark for `Show deposits by branch region`, using region and saved Deposit Balance with no filters.
+
+M01 returned the correct **76.9730%** from saved `[Fraud Loss Rate]`, but standalone verified-answer matching remained unconfirmed. S03's fresh IQModel/Data Agent comparison was not run.
+
+B01 exposed `EVALUATE ROW("Total Transaction Count", [Transaction Count])` and **48,710**; B02 exposed `EVALUATE ROW("Total Current Deposit Balance", [Deposit Balance])` and **126,801,285.56**. F06 exposed July 1 inclusive / August 1 exclusive filters on `dim_date[date]` and **12,492**, matching an independent native DAX query.
+
+The owner waived remaining checks and accepted the code for publication; waivers are not passes. Historical observations remain separate.
+
+Owner-configured Prep, verified answers, published agents, and Planning were not changed.
 
 **Read-only test procedure:**
 1. Use a fresh test chat and attach the exact **PaymentsDepositsModel** in **YOUR_WORKSPACE_NAME**; confirm workspace/model IDs from the native model link. Do not clear existing user chats or edit models, reports, Prep settings, permissions, or published agents.
@@ -591,9 +736,17 @@ Terminology and interpretation
 | V02 | What percentage of transaction amount is lost to fraud? | Correct amount-based loss rate and percentage scaling as M01. Record whether a verified answer matched, but do not assume this extra phrase was registered or demand a checkmark for an ordinary correct data answer. |
 | C01 | Immediately after M02: Now show that as a percentage of total transaction amount. | Switch from loss amount to `[Fraud Loss Rate]` with the same legitimate filter context; do not relabel the currency amount as a percentage. |
 
-**Acceptance limits:** these are bounded representative checks, not proof for every possible natural-language question. AI-schema exclusions are not security controls. RLS/OLS, other-user access, production scale, automatic cross-model federation, and repeatability across model refreshes are not certified by this matrix. Findings about user-configured Prep artifacts require owner review before changes.
+**Acceptance limits:** these are bounded representative checks, not proof for every possible natural-language question. AI-schema exclusions are not security controls.
 
-**Step 6 — approve the model.** After reviewing the demo evidence, use **YOUR_WORKSPACE_NAME -> PaymentsDepositsModel -> More options -> Settings -> Copilot -> Approved for Copilot**. With explicit authorization, turn the toggle **On**; if it is already On, leave it unchanged. The current settings pane saves this change without a separate **Apply** button. Close and reopen Settings, select Copilot, and confirm **On**. Keep **Copilot and Microsoft's MCP tools** unchanged. If the older full settings page shows a checkbox instead, select it and choose **Apply**. This approval control is in semantic-model Settings, not the Prep data for AI dialog. Check standalone Copilot after propagation separately; saved approval does not certify answer accuracy.
+RLS/OLS, other-user access, production scale, automatic cross-model federation, and repeatability across model refreshes are not certified by this matrix. Findings about user-configured Prep artifacts require owner review before changes.
+
+**Step 6 — approve the model.** After reviewing the demo evidence, use **YOUR_WORKSPACE_NAME -> PaymentsDepositsModel -> More options -> Settings -> Copilot -> Approved for Copilot**. With explicit authorization, turn the toggle **On**; if it is already On, leave it unchanged.
+
+The current settings pane saves this change without a separate **Apply** button. Close and reopen Settings, select Copilot, and confirm **On**.
+
+Keep **Copilot and Microsoft's MCP tools** unchanged. If the older full settings page shows a checkbox instead, select it and choose **Apply**.
+
+This approval control is in semantic-model Settings, not the Prep data for AI dialog. Check standalone Copilot after propagation separately; saved approval does not certify answer accuracy.
 
 **Completion checkpoint:** confirm saved schema selection, saved AI instructions, two saved verified answers that pass the tests, and saved **Approved for Copilot**. Record each result in the table; leave uncompleted steps pending.
 
@@ -609,7 +762,9 @@ Terminology and interpretation
 
 > Built **before** the ontology so the `Transaction` **time-series binding** (§6.5) has a live table to point at.
 
-**Build order:** **5.1** create the Eventhouse → **5.2** load `LiveTransactions` → **5.3** run the fraud rules. 5.1–5.2 are setup; 5.3 is what you demo. The **action layer** — an **operations agent** — grounds on the ontology, so it's built after §6 (see **§6.6**).
+**Build order:** **5.1** create the Eventhouse → **5.2** load `LiveTransactions` → **5.3** run the fraud rules. 5.1–5.2 are setup; 5.3 is what you demo.
+
+The **action layer** — an **operations agent** — grounds on the ontology, so it's built after §6 (see **§6.6**).
 
 ### 5.1 Eventhouse
 1. Return to **Workspaces → YOUR_WORKSPACE_NAME**.
@@ -657,9 +812,19 @@ The `LiveTransactions` **table is created for you** by the setup notebook in the
 4. In `NorthwindOntology`, open **Transaction → Configure → Manage property bindings → Add binding and properties** to inspect existing bindings. Select the existing **LiveTransactions → Data preview** and find the same reference row. Confirm `fact_transaction.txnId` joins `LiveTransactions.txnId`; under **Entity type properties**, confirm the live properties use timestamp column `eventTime`. Do not add, edit, or save a binding for this check.
 5. Cancel the binding editor and stop the notebook Spark session. Do not rematerialize the graph or start an Operations Agent.
 
-**Current-workspace proof, 2026-10-12:** one 300-event send increased `LiveTransactions` from **6713 to 7013**. The send-window query returned **300 events / 300 transaction IDs**. Reference `TX-00047000`, `eventTime = 2026-10-12T17:48:11.649361Z`, amount **33130.5**, merchant `MER-0003`, appeared in both KQL and the ontology's existing bound-source data preview; ingestion time was `2026-10-12T17:48:53.000769Z`. The `txnId` join and `eventTime` time-series ordering were verified without modifying the ontology. This is bound-source preview evidence, not a graph or agent-action test. Spark session shutdown was confirmed. Despite portal content-request errors, a full page reload confirmed the corrected code, verification output, and `NorthwindLakehouse` attachment persisted in the native notebook.
+**Current-workspace proof, 2026-10-12:** one 300-event send increased `LiveTransactions` from **6713 to 7013**. The send-window query returned **300 events / 300 transaction IDs**.
 
-**Local-file validation (2026-10-12):** supported `nbconvert` normalization restored unique cell IDs in both RTI notebooks without changing cell source or top-level Fabric metadata. All repository notebook schemas pass, including a recheck after subsequent local edits. A fresh native import remains unverified; the workspace Import control did not open during the bounded browser attempts. Do not execute either producer or batch loader as an import check. Use the saved native notebook for the demonstrated run and select the target lakehouse explicitly after any new import.
+Reference `TX-00047000`, `eventTime = 2026-10-12T17:48:11.649361Z`, amount **33130.5**, merchant `MER-0003`, appeared in both KQL and the ontology's existing bound-source data preview; ingestion time was `2026-10-12T17:48:53.000769Z`. The `txnId` join and `eventTime` time-series ordering were verified without modifying the ontology.
+
+This is bound-source preview evidence, not a graph or agent-action test. Spark session shutdown was confirmed.
+
+Despite portal content-request errors, a full page reload confirmed the corrected code, verification output, and `NorthwindLakehouse` attachment persisted in the native notebook.
+
+**Local-file validation (2026-10-12):** supported `nbconvert` normalization restored unique cell IDs in both RTI notebooks without changing cell source or top-level Fabric metadata. All repository notebook schemas pass, including a recheck after subsequent local edits.
+
+A fresh native import remains unverified; the workspace Import control did not open during the bounded browser attempts. Do not execute either producer or batch loader as an import check.
+
+Use the saved native notebook for the demonstrated run and select the target lakehouse explicitly after any new import.
 
 ### 5.3 Fraud detection rules
 Run these four rules **manually in the UI** to confirm the fraud detections fire on the loaded data. Each query returns a count that you compare with the Expected table below.
@@ -672,7 +837,9 @@ Run these four rules **manually in the UI** to confirm the fraud detections fire
 6. Read and record the one-row result. Repeat steps 4–6 separately for Rules 2, 3, and 4; do not run all four as one selection.
 7. Compare all four recorded values with the Expected table below.
 
-Each query ends with a `| where … > 0` guard, so it returns a row **only when its detection condition is met**. These deterministic KQL checks are independent of the optional Operations Agent in §6.6; that agent's supported rule generation and actions require separate validation.
+Each query ends with a `| where … > 0` guard, so it returns a row **only when its detection condition is met**.
+
+These deterministic KQL checks are independent of the optional Operations Agent in §6.6; that agent's supported rule generation and actions require separate validation.
 
 ```kusto
 // Rule 1 — Cross-border high-value → 500 alerts
@@ -710,9 +877,15 @@ LiveTransactions | where merchantRisk == true
 | Impossible travel (2 countries / 30 min) | **148** cards |
 | High-risk merchant (`merchantRisk==true`) | **1373** txns |
 
-**What to do with each result:** compare the returned count to the **Expected** column above. Matching numbers confirm the detection works on the seed data, not that an automated notification or action ran. Saving is **optional**: select **Save** in the queryset toolbar to retain the query text for rerunning or sharing. Operations-agent automation in **§6.6** is a separate optional preview checkpoint; do not assume it supports these compound conditions or aggregations.
+**What to do with each result:** compare the returned count to the **Expected** column above. Matching numbers confirm the detection works on the seed data, not that an automated notification or action ran.
 
-**Current-workspace verification (2026-10-11):** UI queries against the existing `NorthwindRTI` KQL database returned **6,710** rows and **500 / 194 / 148 / 1,373** for the four rules, run separately. Rule 1 exposure was **13,578,093**; Rule 4 returned **1,035** distinct cards and **11** distinct merchants. Created `NorthwindRTI_queryset` (`00000000-0000-0000-0000-000000000021`) in `YOUR_WORKSPACE_NAME`, saved the baseline and four rule blocks, and confirmed saved text after reopening. The saved checks use the full observed seed interval, **2026-05-21 12:21:58 through 2026-09-19 11:09:48 UTC**, including both boundaries and filtering both join inputs. Use the actual seed range for another dataset; a recent `ago()` filter would exclude this historical sample. No ingestion or setup-notebook rerun was performed.
+Saving is **optional**: select **Save** in the queryset toolbar to retain the query text for rerunning or sharing. Operations-agent automation in **§6.6** is a separate optional preview checkpoint; do not assume it supports these compound conditions or aggregations.
+
+**Current-workspace verification (2026-10-11):** UI queries against the existing `NorthwindRTI` KQL database returned **6,710** rows and **500 / 194 / 148 / 1,373** for the four rules, run separately. Rule 1 exposure was **13,578,093**; Rule 4 returned **1,035** distinct cards and **11** distinct merchants.
+
+Created `NorthwindRTI_queryset` (`00000000-0000-0000-0000-000000000021`) in `YOUR_WORKSPACE_NAME`, saved the baseline and four rule blocks, and confirmed saved text after reopening. The saved checks use the full observed seed interval, **2026-05-21 12:21:58 through 2026-09-19 11:09:48 UTC**, including both boundaries and filtering both join inputs.
+
+Use the actual seed range for another dataset; a recent `ago()` filter would exclude this historical sample. No ingestion or setup-notebook rerun was performed.
 
 > **Current UI note:** the result grid can display a valid one-row result and a contradictory **No Rows To Show** message at the same time. Use the populated grid row as the result.
 
@@ -758,10 +931,16 @@ flowchart LR
   end
 ```
 
-**Cross-domain spine:** `FraudAlert → Customer → Loan → DelinquencyEvent` — a Payments-side signal joined to a Lending-side signal through the shared Customer. That walk is the headline **13**. The **Transaction** entity also gets a **time-series binding** to the RTI Eventhouse (§6.5), so live transactions flow into this same governed model for fraud detection.
+**Cross-domain spine:** `FraudAlert → Customer → Loan → DelinquencyEvent` — a Payments-side signal joined to a Lending-side signal through the shared Customer. That walk is the headline **13**.
+
+The **Transaction** entity also gets a **time-series binding** to the RTI Eventhouse (§6.5), so live transactions flow into this same governed model for fraud detection.
 
 ### 6.1 Prep the link column
-The `CustomerHoldsAccount` relationship (§6.3) needs the master customer key on the account. Add `customerKey` to `gold.dim_account` **once**: open the §2.3 notebook (or any notebook attached to `NorthwindLakehouse`), add a **new cell** with the code below, select **Run**, then **refresh the SQL analytics endpoint** (as in §2.4) so the new column is visible. *(This doesn't affect the §3 models — they don't use this column.)*
+The `CustomerHoldsAccount` relationship (§6.3) needs the master customer key on the account.
+
+Add `customerKey` to `gold.dim_account` **once**: open the §2.3 notebook (or any notebook attached to `NorthwindLakehouse`), add a **new cell** with the code below, select **Run**, then **refresh the SQL analytics endpoint** (as in §2.4) so the new column is visible.
+
+*(This doesn't affect the §3 models — they don't use this column.)*
 ```python
 from pyspark.sql import functions as F
 acct = spark.table("gold.dim_account")
@@ -790,40 +969,73 @@ print("null customerKey rows:", check.where(F.col("customerKey").isNull()).count
   9. Expand **Schemas → gold → Tables → dim_account → Columns** and confirm `customerKey` is listed. The ontology binds through the Lakehouse picker, so the notebook output in step 6 is sufficient if you skip this optional SQL check.
 
 ### 6.2 Create the ontology and its entity types
-1. Return to **Workspaces → YOUR_WORKSPACE_NAME** and search for `NorthwindOntology`.
-2. If it exists, open it and continue at step 6; do not create a duplicate.
-3. If it does not exist, select **+ New item**, search for `Ontology`, and select **Ontology (preview)**.
-4. Enter `NorthwindOntology`, then select **Create**.
-5. Wait through **Getting Ontology (preview) ready…** until the configuration canvas opens. Provisioning can take several minutes. Leave any companion graph or helper items that Fabric creates.
-6. If the **You're using the latest version** banner or configuration tour obscures the canvas, select **Dismiss** or **Close**.
-7. Select **Add Entity Type** on the canvas. If it is not visible, open the Home ribbon's **More Options** menu and select **Add Entity Type**.
-8. In **Entity type name**, enter the first name from the table below, then select **Add Entity Type**.
-9. Wait for the entity node to appear on the canvas and under **Explorer → Ontology → Entity Types**.
-10. Repeat steps 7–9 until all nine names exist. Check the Explorer before each creation to avoid duplicates.
-   > **Naming rules:** 1–26 characters; letters/digits/hyphen/underscore; must start and end alphanumeric. Avoid **GQL reserved words** — name the product entity **`Products`** (plural), because `PRODUCT` is reserved.
 
-   | Entity type | Key column | Bound gold table | Subject area |
-   |---|---|---|---|
-   | Customer | customerKey | gold.dim_customer | shared |
-   | Account | accountId | gold.dim_account | Payments & Deposits |
-   | Merchant | merchantId | gold.dim_merchant | Payments & Deposits |
-   | Products | productId | gold.dim_product | Payments & Deposits |
-   | Branch | branchId | gold.dim_branch | Payments & Deposits |
-   | Transaction | txnId | gold.fact_transaction | Payments & Deposits |
-   | FraudAlert | alertId | gold.fact_fraud_alert | Payments & Deposits |
-   | Loan | loanId | gold.fact_loan | Lending & Credit Risk |
-   | DelinquencyEvent | eventId | gold.fact_delinquency | Lending & Credit Risk |
-11. **Bind each entity to its gold table:** select the entity node's **Configure entity type** icon. The entity's **Configure** page opens.
-12. Select **Add properties from data**. For an entity that already has a binding, select **Manage property bindings**, then **Add**.
-13. In **Property binding**, select **Add** under **Add a data source**.
-14. In **Choose the data you want to connect**, expand `NorthwindLakehouse`; no separate search or **Connect** step is required in the current picker.
-15. Expand schema `gold`, select the table shown for that entity, and select **Select table**.
-16. The **Entity type properties** page opens with the generated column-to-property mappings. Select **Create** and wait to return to the entity's Configure page.
-17. Confirm the **Properties** section now lists the bound columns.
-18. Return to the entity's **Configure** page and select **Define entity type key** under **Entity type key**.
-19. In the key-property combobox, select the key column shown in the table above, then select **Save**. Key definition is separate from property creation in the current UI.
-20. Return to **Home** and repeat steps 11–19 for every entity.
-  > If a **Timeseries data** section appears on a `fact_*` binding, ignore it here — this is the *static* binding; the real time-series binding comes in §6.5, after the static graph is materialized.
+#### Create the ontology
+
+**Before you start:** if `NorthwindOntology` already exists in the workspace, open it and continue with **Add the entity types** below. Do not create a duplicate.
+
+You create ontology items the same way you create other Fabric items:
+
+1. Navigate to your Fabric workspace, **YOUR_WORKSPACE_NAME**.
+2. Select **+ New item**.
+3. Search for and select **Ontology (preview)**.
+4. Enter `NorthwindOntology` as the ontology name. Use letters, numbers, and underscores; do not use spaces or dashes.
+5. Select **Create**.
+
+**Checkpoint:** wait until the configuration canvas opens. Provisioning can take several minutes.
+
+Keep any companion graph or helper items that Fabric creates. If a banner or tour covers the canvas, select **Dismiss** or **Close**.
+
+#### Add the entity types
+
+Create one entity type for each row in the table below:
+
+1. Select **Add Entity Type** on the ontology canvas.
+2. In **Entity type name**, enter the name from the table.
+3. Select **Add Entity Type**.
+4. Confirm the entity appears on the canvas and in the **Entity Types** section of **Explorer**.
+5. Repeat steps 1–4 for the remaining entity types. Check **Explorer** before each creation to avoid duplicates.
+
+**If the control is hidden:** open **More Options** on the **Home** ribbon and select **Add Entity Type**.
+
+**Naming rules:** entity type names are 1–26 characters, allow letters, digits, hyphens, and underscores, and must start and end with a letter or digit. Avoid GQL reserved words.
+
+Use `Products` (plural), because `PRODUCT` is reserved. These rules are separate from the ontology item naming rules above.
+
+| Entity type | Key column | Bound gold table | Subject area |
+|---|---|---|---|
+| Customer | customerKey | gold.dim_customer | shared |
+| Account | accountId | gold.dim_account | Payments & Deposits |
+| Merchant | merchantId | gold.dim_merchant | Payments & Deposits |
+| Products | productId | gold.dim_product | Payments & Deposits |
+| Branch | branchId | gold.dim_branch | Payments & Deposits |
+| Transaction | txnId | gold.fact_transaction | Payments & Deposits |
+| FraudAlert | alertId | gold.fact_fraud_alert | Payments & Deposits |
+| Loan | loanId | gold.fact_loan | Lending & Credit Risk |
+| DelinquencyEvent | eventId | gold.fact_delinquency | Lending & Credit Risk |
+
+#### Bind an entity to its gold table
+
+Connect each entity type to the gold table shown above:
+
+1. Select the entity node's **Configure entity type** icon.
+2. Select **Add properties from data** on the **Configure** page.
+3. In **Property binding**, select **Add** under **Add a data source**.
+4. In **Choose the data you want to connect**, expand `NorthwindLakehouse`.
+5. Expand the `gold` schema.
+6. Select the table shown for the entity in the table above.
+7. Select **Select table**.
+8. Review the generated column-to-property mappings on **Entity type properties**.
+9. Select **Create**.
+10. Confirm **Properties** lists the bound columns on the **Configure** page.
+11. Select **Define entity type key** under **Entity type key**.
+12. Select the entity's key column shown in the table above.
+13. Select **Save**.
+14. Return to **Home** and repeat steps 1–13 for the remaining entities.
+
+**Existing binding:** in step 2, select **Manage property bindings**, then **Add**, instead of **Add properties from data**. The current Lakehouse picker does not require a separate **Connect** step.
+
+**Static binding only:** ignore **Timeseries data** if it appears on a `fact_*` binding. Add the real time-series binding in §6.5, after materializing the static graph.
 
 > **Binding-target tip:** ontology static bindings need **managed** lakehouse tables with **no delta column-mapping**. If your schema-enabled `gold` tables cause refresh errors, bind instead to a **flat (non-schema) lakehouse** holding a plain copy of the gold tables — same data, cleaner graph refresh.
 
@@ -894,9 +1106,13 @@ Transaction now has static `gold.fact_transaction` data for the materialized gra
 ### 6.6 Action layer — Operations agent (Fabric IQ)
 > **OPTIONAL PREVIEW - Operations Agent.** Without a valid saved playbook, stop this branch and continue to section 7; do not Start the agent or count a generated draft as runtime proof. Teams notifications and other actions require approval. This checkpoint is not required for core completion.
 
-With the ontology in place — including the `Transaction` **time-series binding** to the live Eventhouse (§6.5) — wire the fraud **action layer**: a **Fabric operations agent**. It's a dedicated Fabric IQ item that continuously watches the ontology, evaluates goals you write in plain English, and messages Teams or runs an action when a fraud condition matches. **The `NorthwindOntology` is its knowledge source.**
+With the ontology in place — including the `Transaction` **time-series binding** to the live Eventhouse (§6.5) — wire the fraud **action layer**: a **Fabric operations agent**.
 
-**Prereqs:** the lakehouse-backed NorthwindOntology above, with the section 6.5 Eventhouse time-series binding. Semantic-model-bound ontologies are not supported for this Operations Agent path. Lakehouse bindings remove that source limitation but do not guarantee generation or monitoring success. Tenant-setting changes, Teams app installation, notifications, and actions require separate approval; leave the agent stopped during setup-only validation.
+It's a dedicated Fabric IQ item that continuously watches the ontology, evaluates goals you write in plain English, and messages Teams or runs an action when a fraud condition matches. **The `NorthwindOntology` is its knowledge source.**
+
+**Prereqs:** the lakehouse-backed NorthwindOntology above, with the section 6.5 Eventhouse time-series binding. Semantic-model-bound ontologies are not supported for this Operations Agent path.
+
+Lakehouse bindings remove that source limitation but do not guarantee generation or monitoring success. Tenant-setting changes, Teams app installation, notifications, and actions require separate approval; leave the agent stopped during setup-only validation.
 
 > **Current rule limitation:** [Microsoft's Operations Agent limitations](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/operations-agent-limitations) state that ontology monitoring supports basic property values, but not aggregations or rules requiring **AND** conditions. The four-rule goal below is a design request, not a supported ontology-monitoring acceptance test: amount-plus-country and multi-merchant/multi-country window rules exceed these documented capabilities. Keep the deterministic KQL checks in §5.3 as the verified fraud detection path. Before starting this agent, narrow its ontology goal to a supported property-value rule or separately validate an Eventhouse-based design. Do not claim all four rules are automated by attaching the ontology.
 
@@ -908,7 +1124,7 @@ With the ontology in place — including the `Transaction` **time-series binding
 6. Wait for the **Agent setup** page to open.
 7. In **Agent instructions**, paste the following goal:
   > *Monitor Transaction entities in NorthwindOntology. Flag a Transaction when its amount property is greater than 10000. Use only this single property-value condition; do not aggregate or combine conditions. Describe flagged transactions for review. Do not send Teams messages, execute actions, or block cards.*
-  The four-condition fraud design remains independently covered by KQL in section 5.3, not by this ontology-monitoring probe.
+The four-condition fraud design remains independently covered by KQL in section 5.3, not by this ontology-monitoring probe.
 8. Confirm the existing Knowledge source first. If NorthwindOntology is already selected, preserve it and continue at step 10; otherwise select **Knowledge -> Add data**.
 9. Search for `NorthwindOntology`, select the ontology row, and select **Add**.
 10. Confirm `NorthwindOntology` appears in the Knowledge list.
@@ -920,17 +1136,47 @@ With the ontology in place — including the `Transaction` **time-series binding
 16. Stop after saved-playbook validation for this run. Starting the agent requires review of its built-in Teams behavior and separate approval; instructions alone are not a messaging safety control.
 17. Only after runtime/notification approval, start the agent and stream a fresh matching event through the section 5 Eventstream path. Record a notification or action only if actually observed.
 
-**Setup checkpoint:** a saved, reviewed playbook references the lakehouse-backed NorthwindOntology and supported amount-threshold rule. This setup checkpoint passed in the latest UI retry below. **Separate runtime checkpoint, approval required:** a fresh matching event produces the approved notification/action. Runtime has not been tested. Activator is optional, not a prerequisite.
+**Setup checkpoint:** a saved, reviewed playbook references the lakehouse-backed NorthwindOntology and supported amount-threshold rule. This setup checkpoint passed in the latest UI retry below.
 
-**Live setup evidence:** `NorthwindFraudOpsAgent` was created in `YOUR_WORKSPACE_NAME`. Its fraud goal and `NorthwindOntology` knowledge source were saved, with **Configuration saved successfully** confirmation. Playbook generation initially exceeded the 90-second completion check, then ended with **No playbook generated** and **I was not able to process your request. Please try again or refine your instructions.** The agent was not started. No supported playbook or Teams notification was verified; the documented ontology rule limitations above must be addressed before accepting this workflow.
+**Separate runtime checkpoint, approval required:** a fresh matching event produces the approved notification/action. Runtime has not been tested.
 
-**Supported-rule UI probe (2026-10-11):** replaced the unsupported compound instructions with a single Transaction `amount > 10000` rule, asking the generator to resolve static `txnId` and the existing LiveTransactions timeseries binding. The instructions explicitly prohibit aggregations, combined conditions, and card-blocking actions. **Configuration saved successfully** appeared. One **Generate playbook** request was submitted; the UI remained **Generating playbook...** through two bounded completion checks of 65 and 60 seconds. This is a pending generation, not a validated property binding or saved playbook. The agent was not started, no actions were added, and no Teams messages were authorized or verified.
+Activator is optional, not a prerequisite.
 
-**Follow-up UI check:** reopening the Operations configuration showed **No playbook available**, with the simplified instructions preserved. No saved playbook was established; the reason was not exposed by this check. A normal click on IQModel's **Editing → Make any changes** in the active browser tab also left it in Viewing mode. These are unresolved UI workflow blockers, not evidence that capacity is still paused or browser tools are unavailable.
+**Live setup evidence:** `NorthwindFraudOpsAgent` was created in `YOUR_WORKSPACE_NAME`. Its fraud goal and `NorthwindOntology` knowledge source were saved, with **Configuration saved successfully** confirmation.
 
-**Latest setup retry passed (2026-10-11, integrated browser):** reloaded `NorthwindFraudOpsAgent` and verified the shorter section 6.6 goal was already saved with `NorthwindOntology` as Knowledge. Submitted one **Generate playbook** request. Generation remained pending through a 90-second check but subsequently completed; no duplicate request was submitted. The reviewed playbook contains class **Transaction**, rule **Transaction Amount Over 10000**, and a single amount threshold without compound predicates or aggregations. Its displayed KQL reads `NorthwindRTI.LiveTransactions`, filters `eventTime` between the supplied start/end parameters, and projects `Id = tostring(txnId)`, `Timestamp = coalesce(eventTime, now())`, and `TransactionAmount = todouble(amount)`. The inferred `transaction_amount` property uses `TransactionAmount`. Selected **More options -> Save**, observed **Configuration saved successfully**, and reloaded: the instructions, Knowledge, class, properties, and rule persisted. This supersedes the earlier saved-playbook blocker, not the historical generation failures. **No actions** remains displayed. The agent was not started; no Teams messages or runtime actions were authorized or tested. The instruction prohibition is not a control that disables built-in Teams behavior.
+Playbook generation initially exceeded the 90-second completion check, then ended with **No playbook generated** and **I was not able to process your request. Please try again or refine your instructions.** The agent was not started.
 
-**Approved runtime and synthetic-data test (2026-10-11, integrated browser):** the user subsequently approved starting the agent and allowing test Teams notifications, then explicitly requested matching test data. Selected **Start** and observed **Agent started successfully**; the UI also showed **The agent is already running.** In a separate tab within the existing NorthwindRTI queryset, inspected the 15-column `LiveTransactions` schema, then executed one `.set-or-append LiveTransactions` command through the UI. A typed `datatable` supplied three synthetic rows; `eventTime = now()` used the server's current time, and the final projection matched the existing column order. No schema, bindings, permissions, goals, or custom actions were changed. The original fraud-rule query tab was preserved.
+No supported playbook or Teams notification was verified; the documented ontology rule limitations above must be addressed before accepting this workflow.
+
+**Supported-rule UI probe (2026-10-11):** replaced the unsupported compound instructions with a single Transaction `amount > 10000` rule, asking the generator to resolve static `txnId` and the existing LiveTransactions timeseries binding. The instructions explicitly prohibit aggregations, combined conditions, and card-blocking actions.
+
+**Configuration saved successfully** appeared. One **Generate playbook** request was submitted; the UI remained **Generating playbook...** through two bounded completion checks of 65 and 60 seconds.
+
+This is a pending generation, not a validated property binding or saved playbook. The agent was not started, no actions were added, and no Teams messages were authorized or verified.
+
+**Follow-up UI check:** reopening the Operations configuration showed **No playbook available**, with the simplified instructions preserved. No saved playbook was established; the reason was not exposed by this check.
+
+A normal click on IQModel's **Editing → Make any changes** in the active browser tab also left it in Viewing mode. These are unresolved UI workflow blockers, not evidence that capacity is still paused or browser tools are unavailable.
+
+**Latest setup retry passed (2026-10-11, integrated browser):** reloaded `NorthwindFraudOpsAgent` and verified the shorter section 6.6 goal was already saved with `NorthwindOntology` as Knowledge. Submitted one **Generate playbook** request.
+
+Generation remained pending through a 90-second check but subsequently completed; no duplicate request was submitted. The reviewed playbook contains class **Transaction**, rule **Transaction Amount Over 10000**, and a single amount threshold without compound predicates or aggregations.
+
+Its displayed KQL reads `NorthwindRTI.LiveTransactions`, filters `eventTime` between the supplied start/end parameters, and projects `Id = tostring(txnId)`, `Timestamp = coalesce(eventTime, now())`, and `TransactionAmount = todouble(amount)`. The inferred `transaction_amount` property uses `TransactionAmount`.
+
+Selected **More options -> Save**, observed **Configuration saved successfully**, and reloaded: the instructions, Knowledge, class, properties, and rule persisted. This supersedes the earlier saved-playbook blocker, not the historical generation failures.
+
+**No actions** remains displayed. The agent was not started; no Teams messages or runtime actions were authorized or tested.
+
+The instruction prohibition is not a control that disables built-in Teams behavior.
+
+**Approved runtime and synthetic-data test (2026-10-11, integrated browser):** the user subsequently approved starting the agent and allowing test Teams notifications, then explicitly requested matching test data.
+
+Selected **Start** and observed **Agent started successfully**; the UI also showed **The agent is already running.** In a separate tab within the existing NorthwindRTI queryset, inspected the 15-column `LiveTransactions` schema, then executed one `.set-or-append LiveTransactions` command through the UI.
+
+A typed `datatable` supplied three synthetic rows; `eventTime = now()` used the server's current time, and the final projection matched the existing column order. No schema, bindings, permissions, goals, or custom actions were changed.
+
+The original fraud-rule query tab was preserved.
 
 | Synthetic txnId | Amount (USD) | Expected `amount > 10000` |
 |---|---|---|
@@ -938,25 +1184,47 @@ With the ontology in place — including the `Transaction` **time-series binding
 | `OPS-TEST-20261011-1556-BOUNDARY` | 10000 | false |
 | `OPS-TEST-20261011-1556-NEG` | 9999 | false |
 
-All three rows use `OPS-TEST-` card/account/customer/merchant identifiers, `channel = "SyntheticTest"`, `fraudType = "SyntheticOpsThresholdTest"`, USD, US geography, and false merchantRisk/isFraud values. The threshold does not require fraud labels. Ingestion returned extent `00000000-0000-0000-0000-000000000019`. A fresh readback confirmed **Rows=3; Matching=1; Boundary=1; Below=1**, with **eventTime = 2026-10-11T15:55:15.0990756Z**. The rows remain in the POC table; exclude this test prefix from broad business totals. This tests the existing Eventhouse consumer input directly, not Eventstream delivery, and does not change the earlier time-filtered seed baselines or lakehouse/IQModel data.
+All three rows use `OPS-TEST-` card/account/customer/merchant identifiers, `channel = "SyntheticTest"`, `fraudType = "SyntheticOpsThresholdTest"`, USD, US geography, and false merchantRisk/isFraud values. The threshold does not require fraud labels.
 
-**Runtime outcome:** refreshed **View activity** still showed **No activity to show**. **View performance** showed zero errors, actions, and approval decisions, and **No operations ran in the selected time range.** Matching data and successful Start do not establish detection or Teams delivery. The saved instructions/playbook still prohibit Teams messages; this run did not change that goal or install a Teams app. Selected **Stop**, observed **Agent stopped successfully**, then reloaded and confirmed the saved playbook and **No actions** remained. Start/Stop and test-data persistence passed; detection/notification acceptance remains unverified, not a demonstrated monitoring failure. Do not leave this test agent running or delete the test rows without approval.
+Ingestion returned extent `00000000-0000-0000-0000-000000000019`. A fresh readback confirmed **Rows=3; Matching=1; Boundary=1; Below=1**, with **eventTime = 2026-10-11T15:55:15.0990756Z**.
+
+The rows remain in the POC table; exclude this test prefix from broad business totals. This tests the existing Eventhouse consumer input directly, not Eventstream delivery, and does not change the earlier time-filtered seed baselines or lakehouse/IQModel data.
+
+**Runtime outcome:** refreshed **View activity** still showed **No activity to show**. **View performance** showed zero errors, actions, and approval decisions, and **No operations ran in the selected time range.** Matching data and successful Start do not establish detection or Teams delivery.
+
+The saved instructions/playbook still prohibit Teams messages; this run did not change that goal or install a Teams app. Selected **Stop**, observed **Agent stopped successfully**, then reloaded and confirmed the saved playbook and **No actions** remained.
+
+Start/Stop and test-data persistence passed; detection/notification acceptance remains unverified, not a demonstrated monitoring failure. Do not leave this test agent running or delete the test rows without approval.
 
 ---
 
 ## 7. Working ontology route
 
-The optional generated-ontology comparison and its instructions are removed at the user's request (2026-10-12). Reuse the lakehouse-backed **NorthwindOntology** and its existing graph from section 6. No replacement ontology, source rebinding, or regeneration is required. Continue to section 8.
+The optional generated-ontology comparison and its instructions are removed at the user's request (2026-10-12). Reuse the lakehouse-backed **NorthwindOntology** and its existing graph from section 6.
 
-**Cleanup verified (2026-10-12):** deleted only the retired comparison ontology through the native **YOUR_WORKSPACE_NAME** workspace menu. Fabric confirmed it was moved to the Recycle Bin. After a full workspace reload, that ontology and its generated Eventhouse, KQL database, and graph were absent; the workspace count changed from 25 to 21. No separate companion deletion was submitted. **NorthwindOntology**, its graph and Eventhouse/KQL database, **NorthwindDataAgent**, **NorthwindFraudOpsAgent**, **NorthwindLakehouse**, **IQModel**, and the existing notebooks remained listed. No agent instructions, published version, permissions, or source bindings were changed.
+No replacement ontology, source rebinding, or regeneration is required. Continue to section 8.
+
+**Cleanup verified (2026-10-12):** deleted only the retired comparison ontology through the native **YOUR_WORKSPACE_NAME** workspace menu. Fabric confirmed it was moved to the Recycle Bin.
+
+After a full workspace reload, that ontology and its generated Eventhouse, KQL database, and graph were absent; the workspace count changed from 25 to 21. No separate companion deletion was submitted.
+
+**NorthwindOntology**, its graph and Eventhouse/KQL database, **NorthwindDataAgent**, **NorthwindFraudOpsAgent**, **NorthwindLakehouse**, **IQModel**, and the existing notebooks remained listed. No agent instructions, published version, permissions, or source bindings were changed.
 
 ---
 
 ## 8. Data agent (Module 8)
 
-**Demo status:** complete through the published **NorthwindDataAgent -> IQModel** path. The standalone cross-domain, merchant-ring, and governed-KPI answers are recorded below. Optional NorthwindOntology attachment is not required for this working demo; further publishing and external integrations remain excluded.
+**Demo status:** complete through the published **NorthwindDataAgent -> IQModel** path. The standalone cross-domain, merchant-ring, and governed-KPI answers are recorded below.
 
-**Latest UI continuation (2026-10-11, resumed-capacity retry):** resumed `YOUR_CAPACITY_NAME` and confirmed **Active**. The older agent tab still loaded slowly, but a fresh YOUR_WORKSPACE_NAME workspace tab opened the existing NorthwindDataAgent editor successfully. Selected **Add sources -> Ontology**, selected the exact **NorthwindOntology** row with location **YOUR_WORKSPACE_NAME**, and selected **Add** once. After **Checking NorthwindOntology**, Fabric returned **Couldn't add ontology** and **Check that you can access this ontology, then try again.** The Sources list still contains only `IQModel` and its ten tables. No instructions, permissions, ownership, runtime, or published version were changed. The error does not establish its root cause. A capacity pause was requested immediately after the blocker; see Final proof for the verified final capacity state.
+Optional NorthwindOntology attachment is not required for this working demo; further publishing and external integrations remain excluded.
+
+**Latest UI continuation (2026-10-11, resumed-capacity retry):** resumed `YOUR_CAPACITY_NAME` and confirmed **Active**. The older agent tab still loaded slowly, but a fresh YOUR_WORKSPACE_NAME workspace tab opened the existing NorthwindDataAgent editor successfully.
+
+Selected **Add sources -> Ontology**, selected the exact **NorthwindOntology** row with location **YOUR_WORKSPACE_NAME**, and selected **Add** once.
+
+After **Checking NorthwindOntology**, Fabric returned **Couldn't add ontology** and **Check that you can access this ontology, then try again.** The Sources list still contains only `IQModel` and its ten tables. No instructions, permissions, ownership, runtime, or published version were changed.
+
+The error does not establish its root cause. A capacity pause was requested immediately after the blocker; see Final proof for the verified final capacity state.
 
 > **OPTIONAL PREVIEW - Fabric Data Agent.** If the source or agent experience is unavailable, continue to section 9 when the hand-curated graph is ready, otherwise Final proof. Existing saved DAX remains core evidence. Do not publish a corrected draft as validated while its applicable KPI gates are failing.
 
@@ -978,9 +1246,19 @@ The optional generated-ontology comparison and its instructions are removed at t
 8. If attachment succeeds, in **Explorer → Sources**, expand the ontology source and confirm its entities are listed. Select the entities the agent may use. If attachment is blocked by the issue above, continue to step 12 without an ontology source.
 9. Open **Setup → Agent instructions**, or use **Agent instructions** in the toolbar if the tree entry does not open the pane.
 10. Add the `customerKey` identity rule and cross-domain routing rules from §4. Route banking questions to `IQModel`, use `fact_fraud_alert` and `fact_delinquency` as authoritative sources, and use `[Delinquent With Fraud]` for the approved customer count. Never put the expected answer in the instructions. GQL-specific guidance applies only when a graph model is connected directly.
-  For KPIs, require the existing `[Fraud Loss Rate]` and `[Delinquency Rate]` measures directly, with no `DEFINE MEASURE` substitutions. Delinquency is the share of loans with `dpd >= 30`, not a balance ratio. Do not add a latest-date filter unless requested; display ratios as percentages. A live test without these explicit rules generated substitute measures and an unrequested latest-date filter, so inspect DAX before accepting KPI answers.
-  **Earlier KPI acceptance failure (superseded by the draft retest below):** after saving these rules, the rerun still defined a substitute fraud measure. Its raw result was `0.769730080106604`, but the answer incorrectly displayed `0.7697%`. The direct `[Delinquency Rate]` query failed with **The value for 'Delinquency Rate' cannot be determined**. Do not accept either earlier answer as a verified governed KPI or rely on instructions as enforcement. Verify the live model measures and retest; the corrected draft was not republished as a validated fix.
-  The live `IQModel` web model view showed `[Delinquent With Fraud]` but neither rate measure in its table field lists. Local model definitions are not proof that those measures were deployed to `IQModel`. The editor opened in **Viewing mode**; resolve the model's editable configuration before adding the approved measures and rerunning acceptance.
+For KPIs, require the existing `[Fraud Loss Rate]` and `[Delinquency Rate]` measures directly, with no `DEFINE MEASURE` substitutions. Delinquency is the share of loans with `dpd >= 30`, not a balance ratio.
+
+Do not add a latest-date filter unless requested; display ratios as percentages. A live test without these explicit rules generated substitute measures and an unrequested latest-date filter, so inspect DAX before accepting KPI answers.
+
+**Earlier KPI acceptance failure (superseded by the draft retest below):** after saving these rules, the rerun still defined a substitute fraud measure. Its raw result was `0.769730080106604`, but the answer incorrectly displayed `0.7697%`.
+
+The direct `[Delinquency Rate]` query failed with **The value for 'Delinquency Rate' cannot be determined**. Do not accept either earlier answer as a verified governed KPI or rely on instructions as enforcement.
+
+Verify the live model measures and retest; the corrected draft was not republished as a validated fix.
+
+The live `IQModel` web model view showed `[Delinquent With Fraud]` but neither rate measure in its table field lists. Local model definitions are not proof that those measures were deployed to `IQModel`.
+
+The editor opened in **Viewing mode**; resolve the model's editable configuration before adding the approved measures and rerunning acceptance.
 11. Click the Markdown preview to edit, replace the placeholder instructions, then click the preview to save. If your UI shows **Save** or **Apply**, use that control. Reopen the pane to verify the saved text.
 12. Select **Add sources → Data source** and add `IQModel` as a **Semantic model** source from **YOUR_WORKSPACE_NAME**, not a similarly named model in another workspace. Under **Sources**, select the `IQModel` parent checkbox to enable all ten tables. If the standard-runtime table warning appears, **Continue with Standard** is sufficient for these ten tables. Confirm **No tables selected yet** disappears and selection persists after reloading.
 13. Optional: repeat **Add data source** for `PaymentsDepositsModel`, `LendingCreditRiskModel`, and the `NorthwindRTI` **KQL Database**. Do not exceed five total sources.
@@ -999,33 +1277,105 @@ The optional generated-ontology comparison and its instructions are removed at t
 
 **Checkpoint:** record the generated query and confirm the answer is **13**. Until this is run successfully in the current workspace, report the data-agent step as pending rather than verified.
 
-**Live UI acceptance evidence (YOUR_WORKSPACE_NAME):** `NorthwindDataAgent` answered *Which delinquent borrowers also had fraud alerts?* with **13 distinct customerKeys**, using `IQModel`. The expanded **Execution and output → DAX** step grouped `dim_customer[customerKey]` with `[Delinquent With Fraud]`, filtered the measure to values greater than zero, and counted the resulting rows. The output contained 13 customer rows, each with measure value 1 and total count 13. Response time was 36 seconds. The agent was then published; switching **Draft → Published** confirmed the saved description and all ten enabled model tables in the read-only published view. Microsoft 365 Copilot publication was left off. This verifies the direct semantic-model path; ontology attachment failed separately, with its specific cause unverified.
+**Live UI acceptance evidence (YOUR_WORKSPACE_NAME):** `NorthwindDataAgent` answered *Which delinquent borrowers also had fraud alerts?* with **13 distinct customerKeys**, using `IQModel`.
 
-**Fresh-session recovery (2026-10-11 UTC):** older tabs remained blank or reported `ERR_NETWORK_IO_SUSPENDED`. A new workspace tab loaded successfully; a new Data Agent tab subsequently loaded its editor and published view. Do not treat the earlier loading state as a query failure or repeatedly retry suspended tabs.
+The expanded **Execution and output → DAX** step grouped `dim_customer[customerKey]` with `[Delinquent With Fraud]`, filtered the measure to values greater than zero, and counted the resulting rows. The output contained 13 customer rows, each with measure value 1 and total count 13.
 
-**Latest ontology attachment retry blocked (2026-10-11, integrated browser):** opened the existing `NorthwindDataAgent` draft, selected **Add sources -> Ontology**, selected the exact **NorthwindOntology** row in **YOUR_WORKSPACE_NAME**, and selected **Add** once. After **Adding NorthwindOntology**, Fabric displayed **Couldn't add ontology** and **Check that you can access this ontology, then try again.** The Sources list still contains only `IQModel` and its ten enabled tables; the existing agent instructions were preserved. Attachment was not completed. The error does not establish a permission problem or prove that known issue 1987 is still active. No permission, source-binding, runtime, publication, or tenant-setting changes were made, and no alternate ontology was substituted.
+Response time was 36 seconds. The agent was then published; switching **Draft → Published** confirmed the saved description and all ten enabled model tables in the read-only published view.
 
-**Published merchant-hub acceptance:** *Which merchants are hubs for card fraud?* returned `MER-0026` (ATM Store 26) first, with **69 fraudulent transactions / 968 total transactions = 7.13%**, in 23 seconds. **Expand response → Steps completed → Analyzed IQModel SemanticModel → Execution and output** exposed DAX that grouped by merchantId/name, counted transactions with `isFraud = TRUE()`, and ranked the top 20 by fraud count then fraud rate. The raw output confirmed 69, 968, and `0.0712809917355372`. This is a verified direct-IQModel DAX result, not an ontology/GQL execution.
+Microsoft 365 Copilot publication was left off. This verifies the direct semantic-model path; ontology attachment failed separately, with its specific cause unverified.
 
-**Fraud-ring failure and draft correction:** the published version initially returned **390 customers for every merchant**, including a blank merchant row. Its DAX invented a ring definition of at least two fraudulent transactions and counted `dim_customer[customerKey]`; merchant filters did not constrain that dimension-side count. Reject that result. Direct DAX using `CONTAINSSTRING(fact_transaction[fraudType], "Ring")` and distinct `fact_transaction[customerKey]` per merchant returned **MER-0041 / 7**. The draft instructions were updated with this business definition and transaction-side counting rule, without embedding expected answers. The same natural-language question then returned **MER-0041 / 7**, in 39 seconds. Expanded execution filtered Ring transactions, formed unique merchantId/customerKey pairs, grouped and counted those pairs, and selected the highest count; raw output confirmed 7. The corrected draft was not republished while KPI acceptance remained failed.
+**Fresh-session recovery (2026-10-11 UTC):** older tabs remained blank or reported `ERR_NETWORK_IO_SUSPENDED`. A new workspace tab loaded successfully; a new Data Agent tab subsequently loaded its editor and published view.
 
-**High-risk exposure draft acceptance:** *How many customers transacted at a high-risk merchant?* returned **1,800 distinct customers**, in 8 seconds. Executed DAX was `CALCULATE(DISTINCTCOUNT(fact_transaction[customerKey]), dim_merchant[riskFlag] == TRUE())`, with no date filter. Independent direct-IQModel DAX confirmed **1,800 customers and 11 high-risk merchants**. This verifies the draft natural-language answer against direct DAX; it does not by itself prove the separate GQL checkpoint or published-version acceptance.
+Do not treat the earlier loading state as a query failure or repeatedly retry suspended tabs.
 
-**Direct live KPI check:** from the fresh IQModel editor, select **DAX query view**, enter `EVALUATE ROW("Fraud Loss Rate", [Fraud Loss Rate], "Delinquency Rate", [Delinquency Rate])`, and run with **F5**. The query executed but failed with **Query (1, 72) The value for 'Delinquency Rate' cannot be determined**. The model remained in Viewing mode; no measure definitions were saved. DAX queries in this mode are discarded on close. This confirms a live-model KPI failure independently of the agent; it is not a successful measure deployment.
+**Latest ontology attachment retry blocked (2026-10-11, integrated browser):** opened the existing `NorthwindDataAgent` draft, selected **Add sources -> Ontology**, selected the exact **NorthwindOntology** row in **YOUR_WORKSPACE_NAME**, and selected **Add** once.
 
-**Temporary definition test, not deployment:** a separate DAX query defined the four approved measures locally: Transaction Amount as the transaction amount sum, Fraud Loss Amount as that sum filtered to `isFraud = TRUE()`, Fraud Loss Rate as their ratio, and Delinquency Rate as the share of loan rows with `dpd >= 30`. F5 returned **Success (1876.2 ms)**, with **18,190,112.03** transaction amount, **14,001,476.39** fraud loss amount, and grid-rounded ratios **0.77** and **0.15**. These ratios are not percentages of 0.77% and 0.15%; the grid rounded the raw values. **Update model with changes (0)** remained disabled in Viewing mode. None of these query-local definitions was saved, and this test does not satisfy governed-measure or published-agent acceptance. Opening IQModel through its workspace link recovered the editor after a direct DAX-view URL hit `NG04002: index.html`.
+After **Adding NorthwindOntology**, Fabric displayed **Couldn't add ontology** and **Check that you can access this ontology, then try again.** The Sources list still contains only `IQModel` and its ten enabled tables; the existing agent instructions were preserved. Attachment was not completed.
 
-**Live measure inventory:** `INFO.VIEW` queries returned **10 tables, 9 relationships, and 1 measure**. The sole measure is `dim_customer[Delinquent With Fraud]`, defined as the count of the intersection of fraud-alert and delinquency customerKeys. Neither rate nor the supporting amount measures exists in this live model. The Viewing selector eventually opened, but selecting **Editing → Make any changes** left the model in Viewing mode with no confirmation or error shown. No permissions or tenant settings were changed. [Microsoft's editing requirements](https://learn.microsoft.com/power-bi/transform-model/service-edit-data-models#permissions) require model Write access and, where granular access control applies, access to its underlying sources; the specific cause of this unsuccessful mode transition was not established.
+The error does not establish a permission problem or prove that known issue 1987 is still active. No permission, source-binding, runtime, publication, or tenant-setting changes were made, and no alternate ontology was substituted.
 
-**Post-capacity UI verification (2026-10-11):** a fresh IQModel query without `DEFINE` succeeded in **12545.8 ms**, returning **10 tables, 9 relationships, 1 measure**, and `[Delinquent With Fraud] = 13`. The second result exposed the sole persisted measure's intersection expression. After the ribbon loaded, selecting **Viewing → Editing → Make any changes** again left the model in Viewing mode; the browser also reported a 404, but its cause was not established. The four approved KPI measures were not persisted. The Payments editor also remained Viewing-only; its standard Power BI entry route produced `NG04002: index.html`. Active capacity resolved lakehouse availability and enabled successful DAX checks, but did not establish a working model-editing path. Permissions, source bindings, and tenant settings were left unchanged; the corrected Data Agent draft was not republished.
+**Published merchant-hub acceptance:** *Which merchants are hubs for card fraud?* returned `MER-0026` (ATM Store 26) first, with **69 fraudulent transactions / 968 total transactions = 7.13%**, in 23 seconds.
 
-**KPI persistence resolved (2026-10-11, integrated browser):** after the user entered **Editing**, the four approved definitions passed the DAX test and **Update model with changes (4) -> Update model** saved them. Added `fact_transaction[Transaction Amount] = SUM('fact_transaction'[amount])`, `fact_transaction[Fraud Loss Amount] = CALCULATE([Transaction Amount], 'fact_transaction'[isFraud] = TRUE())`, `fact_transaction[Fraud Loss Rate] = DIVIDE([Fraud Loss Amount], [Transaction Amount])`, and `fact_loan[Delinquency Rate] = DIVIDE(CALCULATE(COUNTROWS('fact_loan'), 'fact_loan'[dpd] >= 30), COUNTROWS('fact_loan'))`. Queries **without DEFINE**, including after reopening the tab, returned **18,190,112.03**, **14,001,476.39**, **76.9730%**, **15.4661%**, and the preserved `[Delinquent With Fraud] = 13`. The reopened `INFO.VIEW` inventory confirmed **10 tables, 9 relationships, and 5 persisted measures**; the final query succeeded in **1399.3 ms** with **Update model with changes (0)**. This supersedes the earlier model-persistence blocker, not the historical Data Agent failures. Model Properties showed percentage/four-decimal rate settings and two-decimal amount settings after individual edits; one overlapping edit failed with **Semantic model out of sync** and was retried. Reopened DAX metadata still returned blank format strings, so stored formatting remains unverified; the displayed rates above used query-level `FORMAT`. Data Agent KPI answers still require a fresh acceptance test, and the corrected draft was not republished. No tables, relationships, permissions, source bindings, or tenant settings were changed.
+**Expand response → Steps completed → Analyzed IQModel SemanticModel → Execution and output** exposed DAX that grouped by merchantId/name, counted transactions with `isFraud = TRUE()`, and ranked the top 20 by fraud count then fraud rate. The raw output confirmed 69, 968, and `0.0712809917355372`.
 
-**IQModel stored formatting verified (2026-10-11, later integrated-browser continuation):** reopened the existing model and inspected Fraud Loss Rate in Properties: **Percentage, 4 decimal places**. A fresh read-only query using `SELECTCOLUMNS(INFO.MEASURES(), "Measure", [Name], "StoredFormat", [FormatString], "Folder", [DisplayFolder])` returned `0.0000%;-0.0000%;0.0000%` for Fraud Loss Rate and Delinquency Rate, `0.00` for Transaction Amount and Fraud Loss Amount, and `0` for Delinquent With Fraud. This verifies stored formatting independently of query-level `FORMAT` and supersedes the earlier blank-format readback gap. No further IQModel edits were needed; the difference from the earlier `INFO.VIEW` readback does not establish its root cause.
+This is a verified direct-IQModel DAX result, not an ontology/GQL execution.
 
-**Draft Data Agent KPI acceptance passed (2026-10-11, integrated browser):** after the four measures were persisted, submitted two new questions in the existing `NorthwindDataAgent` draft chat, preserving its previous evidence and instructions. *What's our fraud loss rate?* returned **76.9730%** in **9 seconds**; *What's our delinquency rate?* returned **15.4661%** in **9 seconds**. Expanded each **1 step completed -> Analyzed IQModel SemanticModel -> Execution and output**. The executed DAX was respectively `EVALUATE ROW("Fraud Loss Rate", [Fraud Loss Rate])` and `EVALUATE ROW("Delinquency Rate", [Delinquency Rate])`, with comments only. Neither query used `DEFINE MEASURE`, added a date filter, or substituted a balance-based delinquency ratio. The execution output tables and natural-language answers both displayed the correct percentages and matched the direct-model baseline. This passes the two draft governed-KPI tests and supersedes the earlier failures; it does not guarantee every future answer or prove published-version acceptance. No agent instructions, source selections, runtime settings, permissions, or publication state were changed. Publishing the corrected draft and testing the published version remain pending.
+**Fraud-ring failure and draft correction:** the published version initially returned **390 customers for every merchant**, including a blank merchant row. Its DAX invented a ring definition of at least two fraudulent transactions and counted `dim_customer[customerKey]`; merchant filters did not constrain that dimension-side count.
 
-**Corrected draft published (2026-10-11, integrated browser):** with user approval, selected **More items -> Publish**. The confirmation retained the existing description and **Also publish to Microsoft 365 Copilot = Off**. Fabric reported **Successfully published data agent: NorthwindDataAgent**. Switching **Draft -> Published** exposed the saved governed-KPI and Ring/customerKey instructions. No runtime, source selections, sharing permissions, or external integrations were changed.
+Reject that result. Direct DAX using `CONTAINSSTRING(fact_transaction[fraudType], "Ring")` and distinct `fact_transaction[customerKey]` per merchant returned **MER-0041 / 7**.
+
+The draft instructions were updated with this business definition and transaction-side counting rule, without embedding expected answers. The same natural-language question then returned **MER-0041 / 7**, in 39 seconds.
+
+Expanded execution filtered Ring transactions, formed unique merchantId/customerKey pairs, grouped and counted those pairs, and selected the highest count; raw output confirmed 7. The corrected draft was not republished while KPI acceptance remained failed.
+
+**High-risk exposure draft acceptance:** *How many customers transacted at a high-risk merchant?* returned **1,800 distinct customers**, in 8 seconds. Executed DAX was `CALCULATE(DISTINCTCOUNT(fact_transaction[customerKey]), dim_merchant[riskFlag] == TRUE())`, with no date filter.
+
+Independent direct-IQModel DAX confirmed **1,800 customers and 11 high-risk merchants**. This verifies the draft natural-language answer against direct DAX; it does not by itself prove the separate GQL checkpoint or published-version acceptance.
+
+**Direct live KPI check:** from the fresh IQModel editor, select **DAX query view**, enter `EVALUATE ROW("Fraud Loss Rate", [Fraud Loss Rate], "Delinquency Rate", [Delinquency Rate])`, and run with **F5**.
+
+The query executed but failed with **Query (1, 72) The value for 'Delinquency Rate' cannot be determined**. The model remained in Viewing mode; no measure definitions were saved.
+
+DAX queries in this mode are discarded on close. This confirms a live-model KPI failure independently of the agent; it is not a successful measure deployment.
+
+**Temporary definition test, not deployment:** a separate DAX query defined the four approved measures locally: Transaction Amount as the transaction amount sum, Fraud Loss Amount as that sum filtered to `isFraud = TRUE()`, Fraud Loss Rate as their ratio, and Delinquency Rate as the share of loan rows with `dpd >= 30`.
+
+F5 returned **Success (1876.2 ms)**, with **18,190,112.03** transaction amount, **14,001,476.39** fraud loss amount, and grid-rounded ratios **0.77** and **0.15**. These ratios are not percentages of 0.77% and 0.15%; the grid rounded the raw values.
+
+**Update model with changes (0)** remained disabled in Viewing mode. None of these query-local definitions was saved, and this test does not satisfy governed-measure or published-agent acceptance.
+
+Opening IQModel through its workspace link recovered the editor after a direct DAX-view URL hit `NG04002: index.html`.
+
+**Live measure inventory:** `INFO.VIEW` queries returned **10 tables, 9 relationships, and 1 measure**. The sole measure is `dim_customer[Delinquent With Fraud]`, defined as the count of the intersection of fraud-alert and delinquency customerKeys.
+
+Neither rate nor the supporting amount measures exists in this live model. The Viewing selector eventually opened, but selecting **Editing → Make any changes** left the model in Viewing mode with no confirmation or error shown.
+
+No permissions or tenant settings were changed. [Microsoft's editing requirements](https://learn.microsoft.com/power-bi/transform-model/service-edit-data-models#permissions) require model Write access and, where granular access control applies, access to its underlying sources; the specific cause of this unsuccessful mode transition was not established.
+
+**Post-capacity UI verification (2026-10-11):** a fresh IQModel query without `DEFINE` succeeded in **12545.8 ms**, returning **10 tables, 9 relationships, 1 measure**, and `[Delinquent With Fraud] = 13`. The second result exposed the sole persisted measure's intersection expression.
+
+After the ribbon loaded, selecting **Viewing → Editing → Make any changes** again left the model in Viewing mode; the browser also reported a 404, but its cause was not established. The four approved KPI measures were not persisted.
+
+The Payments editor also remained Viewing-only; its standard Power BI entry route produced `NG04002: index.html`. Active capacity resolved lakehouse availability and enabled successful DAX checks, but did not establish a working model-editing path.
+
+Permissions, source bindings, and tenant settings were left unchanged; the corrected Data Agent draft was not republished.
+
+**KPI persistence resolved (2026-10-11, integrated browser):** after the user entered **Editing**, the four approved definitions passed the DAX test and **Update model with changes (4) -> Update model** saved them.
+
+Added `fact_transaction[Transaction Amount] = SUM('fact_transaction'[amount])`, `fact_transaction[Fraud Loss Amount] = CALCULATE([Transaction Amount], 'fact_transaction'[isFraud] = TRUE())`, `fact_transaction[Fraud Loss Rate] = DIVIDE([Fraud Loss Amount], [Transaction Amount])`, and `fact_loan[Delinquency Rate] = DIVIDE(CALCULATE(COUNTROWS('fact_loan'), 'fact_loan'[dpd] >= 30), COUNTROWS('fact_loan'))`.
+
+Queries **without DEFINE**, including after reopening the tab, returned **18,190,112.03**, **14,001,476.39**, **76.9730%**, **15.4661%**, and the preserved `[Delinquent With Fraud] = 13`.
+
+The reopened `INFO.VIEW` inventory confirmed **10 tables, 9 relationships, and 5 persisted measures**; the final query succeeded in **1399.3 ms** with **Update model with changes (0)**. This supersedes the earlier model-persistence blocker, not the historical Data Agent failures.
+
+Model Properties showed percentage/four-decimal rate settings and two-decimal amount settings after individual edits; one overlapping edit failed with **Semantic model out of sync** and was retried.
+
+Reopened DAX metadata still returned blank format strings, so stored formatting remains unverified; the displayed rates above used query-level `FORMAT`. Data Agent KPI answers still require a fresh acceptance test, and the corrected draft was not republished.
+
+No tables, relationships, permissions, source bindings, or tenant settings were changed.
+
+**IQModel stored formatting verified (2026-10-11, later integrated-browser continuation):** reopened the existing model and inspected Fraud Loss Rate in Properties: **Percentage, 4 decimal places**.
+
+A fresh read-only query using `SELECTCOLUMNS(INFO.MEASURES(), "Measure", [Name], "StoredFormat", [FormatString], "Folder", [DisplayFolder])` returned `0.0000%;-0.0000%;0.0000%` for Fraud Loss Rate and Delinquency Rate, `0.00` for Transaction Amount and Fraud Loss Amount, and `0` for Delinquent With Fraud.
+
+This verifies stored formatting independently of query-level `FORMAT` and supersedes the earlier blank-format readback gap. No further IQModel edits were needed; the difference from the earlier `INFO.VIEW` readback does not establish its root cause.
+
+**Draft Data Agent KPI acceptance passed (2026-10-11, integrated browser):** after the four measures were persisted, submitted two new questions in the existing `NorthwindDataAgent` draft chat, preserving its previous evidence and instructions.
+
+*What's our fraud loss rate?* returned **76.9730%** in **9 seconds**; *What's our delinquency rate?* returned **15.4661%** in **9 seconds**. Expanded each **1 step completed -> Analyzed IQModel SemanticModel -> Execution and output**.
+
+The executed DAX was respectively `EVALUATE ROW("Fraud Loss Rate", [Fraud Loss Rate])` and `EVALUATE ROW("Delinquency Rate", [Delinquency Rate])`, with comments only. Neither query used `DEFINE MEASURE`, added a date filter, or substituted a balance-based delinquency ratio.
+
+The execution output tables and natural-language answers both displayed the correct percentages and matched the direct-model baseline. This passes the two draft governed-KPI tests and supersedes the earlier failures; it does not guarantee every future answer or prove published-version acceptance.
+
+No agent instructions, source selections, runtime settings, permissions, or publication state were changed. Publishing the corrected draft and testing the published version remain pending.
+
+**Corrected draft published (2026-10-11, integrated browser):** with user approval, selected **More items -> Publish**. The confirmation retained the existing description and **Also publish to Microsoft 365 Copilot = Off**.
+
+Fabric reported **Successfully published data agent: NorthwindDataAgent**. Switching **Draft -> Published** exposed the saved governed-KPI and Ring/customerKey instructions.
+
+No runtime, source selections, sharing permissions, or external integrations were changed.
 
 **Published standalone acceptance passed:** appended four new questions to the existing Published chat, preserving earlier failed responses. Expanded the completed steps and inspected the executed DAX and raw outputs:
 
@@ -1036,9 +1386,17 @@ The optional generated-ontology comparison and its instructions are removed at t
 | Which delinquent borrowers also had fraud alerts? | **13 distinct customers**, 20 seconds | Intersected customerKeys from `fact_delinquency` and `fact_fraud_alert`; returned 13 distinct customer rows with the existing `[Delinquent With Fraud] = 1` per row |
 | Which merchant has the most customers tied to fraud-ring activity? | **MER-0041, Gambling Store 41 / 7**, 14 seconds | Filtered `fact_transaction[fraudType]` with `CONTAINSSTRING(..., "Ring")`, grouped by merchant, and counted distinct transaction-side customerKeys before `TOPN(1, ...)` |
 
-The cross-domain query used `DEFINE VAR` for customer sets; the ring query used a query-local distinct-customer measure. Neither redefined a governed KPI or changed the saved model. These are four observed standalone passes in an existing chat, not clean-session or exhaustive evaluation.
+The cross-domain query used `DEFINE VAR` for customer sets; the ring query used a query-local distinct-customer measure. Neither redefined a governed KPI or changed the saved model.
 
-**Published combined-KPI acceptance failed:** the additional question *What's our fraud loss rate and delinquency rate?* returned **76.97% for both rates** in 10 seconds. Two steps generated separate direct measure queries, but the delinquency step's displayed output was labeled **Fraud Loss Rate** and contained **76.9730%**, despite its DAX querying `[Delinquency Rate]`. The standalone delinquency retest returned the correct **15.4661%**. This establishes a query/output mismatch for the combined request, not its root cause; do not infer caching or a model defect without further evidence. Preserve the failure and keep combined-question acceptance unresolved. No configuration changes or further publication were attempted to work around it.
+These are four observed standalone passes in an existing chat, not clean-session or exhaustive evaluation.
+
+**Published combined-KPI acceptance failed:** the additional question *What's our fraud loss rate and delinquency rate?* returned **76.97% for both rates** in 10 seconds.
+
+Two steps generated separate direct measure queries, but the delinquency step's displayed output was labeled **Fraud Loss Rate** and contained **76.9730%**, despite its DAX querying `[Delinquency Rate]`. The standalone delinquency retest returned the correct **15.4661%**.
+
+This establishes a query/output mismatch for the combined request, not its root cause; do not infer caching or a model defect without further evidence. Preserve the failure and keep combined-question acceptance unresolved.
+
+No configuration changes or further publication were attempted to work around it.
 
 ---
 
@@ -1046,15 +1404,25 @@ The cross-domain query used `DEFINE VAR` for customer sets; the ring query used 
 
 > **OPTIONAL PREVIEW - ontology graph investigation.** Requires the hand-curated graph from section 6.4, not the model-generated ontology. Data Agent availability is not required to run direct GQL. If no usable graph exists, record this branch as pending and continue to section 10 or Final proof.
 
-**Latest extra-query UI retry (2026-10-12): all three passed.** A fresh integrated-browser page loaded the existing NorthwindOntology companion graph in **YOUR_WORKSPACE_NAME**, graph ID `00000000-0000-0000-0000-000000000011`. Selected **Query -> Query now**, then **Query builder -> Code editor**, and executed sections **9.2, 9.3, and 9.4** separately in a new unsaved queryset. The original GQL text worked unchanged: **MER-0026 / 69 fraudulent transactions**, **MER-0041 / 7 ring members**, and **1,800 exposed customers / 11 risky merchants**. Each completed execution displayed its result table. The earlier headline **13** remains historical verified evidence and was not rerun in this retry. No saved user queries, graph configuration, ontology bindings, source data, agents, or capacity settings were changed.
+**Latest extra-query UI retry (2026-10-12): all three passed.** A fresh integrated-browser page loaded the existing NorthwindOntology companion graph in **YOUR_WORKSPACE_NAME**, graph ID `00000000-0000-0000-0000-000000000011`.
 
-**Earlier extra-query UI attempt (2026-10-12): blocked before execution.** The embedded editor remained blank with **Power BI loading** through a 45-second check and another 45-second check after one page reload. None of the three queries ran in that attempt. The successful fresh-page retry above supersedes that blocker; its cause was not established.
+Selected **Query -> Query now**, then **Query builder -> Code editor**, and executed sections **9.2, 9.3, and 9.4** separately in a new unsaved queryset.
+
+The original GQL text worked unchanged: **MER-0026 / 69 fraudulent transactions**, **MER-0041 / 7 ring members**, and **1,800 exposed customers / 11 risky merchants**. Each completed execution displayed its result table.
+
+The earlier headline **13** remains historical verified evidence and was not rerun in this retry. No saved user queries, graph configuration, ontology bindings, source data, agents, or capacity settings were changed.
+
+**Earlier extra-query UI attempt (2026-10-12): blocked before execution.** The embedded editor remained blank with **Power BI loading** through a 45-second check and another 45-second check after one page reload. None of the three queries ran in that attempt.
+
+The successful fresh-page retry above supersedes that blocker; its cause was not established.
 
 **Goal:** start with the ontology graph → end with the four **GQL** queries run in the code editor, proving the cross-domain **13** (plus the hub-merchant, fraud-ring, and blast-radius answers).
 
 **Feature:** *Graph in Fabric (GQL)* — ISO-standard graph queries that do **multi-hop relationship traversal** relational joins struggle with, giving the deterministic, auditable proof behind the agent's natural-language answers.
 
-The ontology graph answers **cross-domain, relationship** questions. This module validates direct **GQL** independently of the **`NorthwindDataAgent`** (§8). An agent connected to IQModel executes DAX instead; matching results across these paths provide the independent third-engine proof behind the headline **13**.
+The ontology graph answers **cross-domain, relationship** questions. This module validates direct **GQL** independently of the **`NorthwindDataAgent`** (§8).
+
+An agent connected to IQModel executes DAX instead; matching results across these paths provide the independent third-engine proof behind the headline **13**.
 
 1. Return to **Workspaces → YOUR_WORKSPACE_NAME**.
 2. Open the graph model created for `NorthwindOntology`. If it is not listed separately, open `NorthwindOntology` and select **Manage graph**.
@@ -1076,7 +1444,9 @@ For each analysis below, the bold **Ask** is the natural-language question (data
   RETURN count(DISTINCT c.customerKey) AS delinquent_borrowers_with_fraud
   ```
 
-### 9.2 Centrality — hub merchants for fraud
+### 9.2 Merchant ranking by fraud transactions
+This query ranks transaction counts; it does not run a general graph-centrality algorithm.
+
 - **Ask:** *"Which merchants are the biggest hubs for card fraud?"* → **`MER-0026`** (~69 fraud transactions)
 - GQL:
   ```gql
@@ -1089,7 +1459,9 @@ For each analysis below, the bold **Ask** is the natural-language question (data
   ```
 - **GQL acceptance passed (2026-10-12):** result table ranked `MER-0026` first with **69** `fraud_txns`; no query correction was needed.
 
-### 9.3 Ring detection
+### 9.3 Customer counts for seeded ring labels
+This query counts customers whose transactions already contain a `Ring` label; it does not discover communities or previously unknown fraud rings.
+
 - **Ask:** *"Which merchant has the most customers tied to fraud-ring activity?"* → **`MER-0041`** (~7 members)
 - GQL:
   ```gql
@@ -1118,7 +1490,9 @@ For each analysis below, the bold **Ask** is the natural-language question (data
 > - Precise **ranking / aggregation** questions (top-N, exact counts) are where NL is least reliable — verify against the GQL when the number has to be exact.
 > - GQL uses the **relationship names from §6.3**; when `RETURN` mixes a key with an aggregate add `GROUP BY <alias>`; `riskFlag` is boolean (`= true`); heavy queries page via a continuation token — click **Run** again if prompted.
 
-**Checkpoint:** the cross-domain answer is **13** whether you **ask the data agent in natural language (§8)** or run the GQL — and it matches the Spark (§2.3) gold check. These are independently verified paths: the current agent executes DAX against IQModel, while the graph queryset executes GQL.
+**Checkpoint:** the cross-domain answer is **13** whether you **ask the data agent in natural language (§8)** or run the GQL — and it matches the Spark (§2.3) gold check.
+
+These are independently verified paths: the current agent executes DAX against IQModel, while the graph queryset executes GQL.
 
 ---
 
@@ -1126,15 +1500,23 @@ For each analysis below, the bold **Ask** is the natural-language question (data
 
 > **OPTIONAL PREVIEW - Fabric IQ Planning.** Connection, forecast, or writeback failure does not block core completion. Preserve the Plan and connections; continue to section 11 or Final proof. This branch remains deferred at the user's request.
 
-**Goal:** start with `PaymentsDepositsModel` + a new Fabric SQL database → end with a **driver-based operating plan** (with scenarios) whose forecast is written back to **`NorthwindPlanDB`**.
+**Goal:** start with `PaymentsDepositsModel` and an explicit deposit-forecast baseline, then explore a **driver-based operating plan** with scenarios. Create **`NorthwindPlanDB`** only when ready for forecast writeback.
+
+This is an optional, unverified extension, not an outcome already established by this lab.
 
 **Feature:** *Planning in Fabric IQ* — a built-in EPM/CPM layer (budgets, forecasts, scenarios) over your **live** semantic-model actuals, with write-back to a Fabric SQL database — replacing disconnected spreadsheet planning.
 
-**Planning** (Fabric IQ → Plan) is the built-in EPM/CPM layer — budgets, forecasts, and scenarios over your governed models. A **plan item connects to exactly one semantic model** (read-only **actuals**) and writes plan data (forecasts, targets, scenarios) to a **Fabric SQL database**. Here you build a driver-based **Payments & Deposits operating plan** on `PaymentsDepositsModel`, then reconcile it against actuals (including RTI fraud losses).
+**Planning** (Fabric IQ → Plan) is the built-in EPM/CPM layer — budgets, forecasts, and scenarios over your governed models. A **plan item connects to exactly one semantic model** (read-only **actuals**) and writes plan data (forecasts, targets, scenarios) to a **Fabric SQL database**.
 
-**Prerequisites:** *Contributor* or higher workspace access and **Build** permission on `PaymentsDepositsModel`. The [current Planning FAQ](https://learn.microsoft.com/fabric/iq/plan/resources/frequently-asked-questions) documents direct connection using the signed-in identity, deprecates semantic-model shared connections, and uses OneLake for new Plan metadata. A Fabric SQL database is required before **writeback**, not before Plan creation. Follow the flow actually offered by your tenant; this tenant still exposed the older shared-connection dialog.
+This branch uses `PaymentsDepositsModel`, including its batch/gold fraud-loss measure. It does not implement live Eventhouse-to-Plan actuals, a lending plan, or a cross-LOB funding driver.
 
-**Lab status (2026-10-10): deferred at the user's request.** Skip the remaining Planning steps and continue the non-Planning modules. Preserve the existing Plan and connections. Actuals, forecasts, scenarios, and writeback are not passed acceptance checks and must not count toward lab completion.
+**Prerequisites:** *Contributor* or higher workspace access and **Build** permission on `PaymentsDepositsModel`. The [current Planning FAQ](https://learn.microsoft.com/fabric/iq/plan/resources/frequently-asked-questions) documents direct connection using the signed-in identity, deprecates semantic-model shared connections, and uses OneLake for new Plan metadata.
+
+A Fabric SQL database is required before **writeback**, not before Plan creation. Follow the flow actually offered by your tenant; this tenant still exposed the older shared-connection dialog.
+
+**Lab status (2026-10-10): deferred at the user's request.** Skip the remaining Planning steps and continue the non-Planning modules. Preserve the existing Plan and connections.
+
+Actuals, forecasts, scenarios, and writeback are not passed acceptance checks and must not count toward lab completion.
 
 ### 10.1 Create the plan item and connect actuals
 1. Confirm the current workspace is **YOUR_WORKSPACE_NAME**, and check whether `PaymentsDepositsPlan` already exists. Open it rather than creating a duplicate.
@@ -1147,13 +1529,35 @@ For each analysis below, the bold **Ask** is the natural-language question (data
 8. In that legacy dialog, set **Select Semantic model From** to **Semantic Model Item**, select `PaymentsDepositsModel`, and select **Connect**.
 9. Confirm the Home page identifies the connected model and a planning sheet can load its saved measures before continuing. A Plan supports one model; the selected model cannot be changed later.
 
-**Verified UI continuation:** `PaymentsDepositsPlan` was created in YOUR_WORKSPACE_NAME with item ID `00000000-0000-0000-0000-000000000020`. Setup completed and Home offered **Semantic Model**, **Excel / CSV**, **Planning**, **PowerTable**, and **Intelligence**. Selecting Semantic Model opened the legacy **Select Semantic Model Connection** dialog, stating that a shared connection is required. It listed `PowerBIDatasets admin`; the embedded credentials form showed **Organizational account**. No new connection was created and no existing connection was edited. The model-selection attempt stalled at **Connecting to Semantic Model** during a bounded readiness check. The selected model, actuals, forecast sheet, scenarios, and writeback are **not verified**. No `NorthwindPlanDB` was created during this continuation.
+**Verified UI continuation:** `PaymentsDepositsPlan` was created in YOUR_WORKSPACE_NAME with item ID `00000000-0000-0000-0000-000000000020`. Setup completed and Home offered **Semantic Model**, **Excel / CSV**, **Planning**, **PowerTable**, and **Intelligence**.
 
-**Subsequent recovery:** the apparent **Connecting to Semantic Model** stall was the outer Fabric **Choose a semantic model** picker, while the Plan iframe continued displaying its loading message. Select the `PaymentsDepositsModel` row whose **Location** is **YOUR_WORKSPACE_NAME**, then **Add**; the same-named `YOUR_WORKSPACE_NAME` model is not this lab's source. This selection succeeded, and **Connect** activated the connection. Plan then displayed **Can't access the semantic model**, identifying `PowerBIDatasets admin`, `PaymentsDepositsModel`, and `YOUR_WORKSPACE_NAME`; the browser reported `getWorkspaceMetadata` **403**. The UI states that the connection owner cannot access the model workspace. Actuals are therefore still unavailable, not validated by the successful model selection.
+Selecting Semantic Model opened the legacy **Select Semantic Model Connection** dialog, stating that a shared connection is required. It listed `PowerBIDatasets admin`; the embedded credentials form showed **Organizational account**.
 
-**Remaining connection gate:** **Manage Semantic Model Connection** listed only `PowerBIDatasets admin`. **Create Connection** opened a blank embedded credentials form, including after a bounded readiness check. The standalone gateway portal rendered navigation but no connection list or creation controls. No connection credentials, workspace membership, or model source bindings were changed. To resume in a normal browser, open the existing Plan, use **Manage Semantic Model Connection**, and create or select a connection authenticated by an account authorized for YOUR_WORKSPACE_NAME and the model. Complete any sign-in personally, then verify the Plan can read actuals before §10.2. Do not recreate the Plan or select the `YOUR_WORKSPACE_NAME` model to bypass the error.
+No new connection was created and no existing connection was edited. The model-selection attempt stalled at **Connecting to Semantic Model** during a bounded readiness check.
 
-**Final retry before deferral:** the credentials form subsequently loaded in the signed-in Power BI session. **Create new connection** was selected and `PaymentsDepositsPlan_YOUR_WORKSPACE_NAME` entered, but **Sign in** reported that its popup was blocked. The replacement connection was not saved. [VS Code's integrated browser documentation](https://code.visualstudio.com/docs/debugtest/integrated-browser#_navigation) states that popups are blocked; it documents no enable-popups setting. Resume this OAuth step in an external browser if Planning is revisited, rather than repeating the integrated-browser retry.
+The selected model, actuals, forecast sheet, scenarios, and writeback are **not verified**. No `NorthwindPlanDB` was created during this continuation.
+
+**Subsequent recovery:** the apparent **Connecting to Semantic Model** stall was the outer Fabric **Choose a semantic model** picker, while the Plan iframe continued displaying its loading message.
+
+Select the `PaymentsDepositsModel` row whose **Location** is **YOUR_WORKSPACE_NAME**, then **Add**; the same-named `YOUR_WORKSPACE_NAME` model is not this lab's source. This selection succeeded, and **Connect** activated the connection.
+
+Plan then displayed **Can't access the semantic model**, identifying `PowerBIDatasets admin`, `PaymentsDepositsModel`, and `YOUR_WORKSPACE_NAME`; the browser reported `getWorkspaceMetadata` **403**. The UI states that the connection owner cannot access the model workspace.
+
+Actuals are therefore still unavailable, not validated by the successful model selection.
+
+**Remaining connection gate:** **Manage Semantic Model Connection** listed only `PowerBIDatasets admin`. **Create Connection** opened a blank embedded credentials form, including after a bounded readiness check.
+
+The standalone gateway portal rendered navigation but no connection list or creation controls. No connection credentials, workspace membership, or model source bindings were changed.
+
+To resume in a normal browser, open the existing Plan, use **Manage Semantic Model Connection**, and create or select a connection authenticated by an account authorized for YOUR_WORKSPACE_NAME and the model. Complete any sign-in personally, then verify the Plan can read actuals before §10.2.
+
+Do not recreate the Plan or select the `YOUR_WORKSPACE_NAME` model to bypass the error.
+
+**Final retry before deferral:** the credentials form subsequently loaded in the signed-in Power BI session. **Create new connection** was selected and `PaymentsDepositsPlan_YOUR_WORKSPACE_NAME` entered, but **Sign in** reported that its popup was blocked.
+
+The replacement connection was not saved. [VS Code's integrated browser documentation](https://code.visualstudio.com/docs/debugtest/integrated-browser#_navigation) states that popups are blocked; it documents no enable-popups setting.
+
+Resume this OAuth step in an external browser if Planning is revisited, rather than repeating the integrated-browser retry.
 
 > **Legacy connection flow:** where the tenant still requires a semantic-model shared connection, that connection is the read path for actuals. The SQL connection in §10.6 is a separate writeback destination. Do not carry this older two-connection requirement into the newer direct-identity flow.
 
@@ -1162,17 +1566,24 @@ For each analysis below, the bold **Ask** is the natural-language question (data
 > **Troubleshooting:** check workspace/Build permissions, model availability, and, for the legacy flow, connection access and authentication. Loading failures do not prove that a connection owner lacks a workspace role. Record the actual error before changing permissions or bindings; do not repeatedly retry an unchanged stalled dialog.
 
 ### 10.2 Build the planning sheet (actuals + a forecast)
+
+**Before you start:** the packaged `[Deposit Balance]` is a current snapshot, not a monthly series. Month-filtered balances must not be interpreted as historical deposit actuals.
+
+Choose either authorized monthly balance snapshots with a correctly modeled monthly balance measure, or a clearly labeled scenario seeded from the current aggregate balance. Without a chosen baseline, defer this exercise.
+
+A scenario-only forecast cannot support monthly deposit plan-versus-actual acceptance until matching historical observations exist.
+
 1. On the plan Home ribbon, select **New Planning Sheet**.
 2. Enter a sheet name such as `Deposits Forecast`, then select **Create**.
 3. Expand the **Data** pane on the right. If it is collapsed, select the **Data** pane icon.
 4. Confirm the pane has **Semantic model data** and **From Sheets** sections.
 5. Expand `dim_date` under **Semantic model data** and drag its Month field to **Rows**.
 6. Optional: expand `dim_branch` and place `region` above Month in **Rows** for a regional breakdown.
-7. Find `[Deposit Balance]` and `[Transaction Amount]` and drag both to **Values**.
-8. Wait for the grid to populate and confirm actual values are visible. Semantic model values are read-only.
+7. Drag `[Transaction Amount]` to **Values**. Add a monthly deposit-balance measure only if authorized historical snapshots were modeled. For the scenario-only route, inspect `[Deposit Balance]` separately without a Month filter and record that snapshot as the baseline.
+8. Wait for the grid to populate and confirm actual values are visible. Semantic model values are read-only; recurring snapshot balances are not monthly deposit history.
 9. Open the **Model** ribbon and select the command to add a measure.
 10. Create a From-Sheets measure named `Forecast`.
-11. Seed the next 12 monthly forecast cells from the trailing actuals, then save the sheet.
+11. Seed the forecast's opening balance from the final authorized monthly balance observation or, for the scenario-only route, from the recorded current snapshot. Label the baseline and forecast months explicitly, then save the sheet. Do not invent trailing monthly actuals from the snapshot.
 
 ### 10.3 Make it driver-based + add scenarios
 1. Open the **Model** ribbon and select **Driver-based model**.
@@ -1183,9 +1594,14 @@ For each analysis below, the bold **Ask** is the natural-language question (data
 6. Assign a different growth value to each scenario without replacing the Base value.
 7. Switch between scenarios and confirm the Forecast changes while the semantic-model actuals remain unchanged.
 
-### 10.4 Plan vs actual (incl. RTI fraud losses)
+### 10.4 Plan vs actual (batch-model fraud losses)
+
+**Before you start:** compare only matching periods and grains. Monthly deposit variance requires actual monthly balance snapshots; skip that comparison for a scenario-only deposit forecast.
+
+`[Fraud Loss Amount]` below is backed by gold batch transactions, not the Eventhouse stream. Live RTI actuals would require an additional ingestion/modeling path outside this lab.
+
 1. Add a From-Sheets calculated measure named `Variance`.
-2. Set its formula to `[actual] - Forecast` for deposits or fee income.
+2. Set its formula to `[actual] - Forecast` only for a modeled metric with corresponding actuals and a forecast at the same grain. For deposits, use the historical monthly balance measure if supplied; otherwise skip this variance.
 3. Add `[Fraud Loss Amount]` from **Semantic model data** to the grid as a read-only actual.
 4. Add an editable From-Sheets measure named `Fraud Loss Budget`.
 5. Add a fraud variance measure comparing `[Fraud Loss Amount]` with `Fraud Loss Budget`.
@@ -1200,7 +1616,9 @@ For each analysis below, the bold **Ask** is the natural-language question (data
 6. Confirm the year-end Forecast reaches the target while actuals remain unchanged.
 
 ### 10.6 Commit the plan (writeback)
-Before adding the destination, create `NorthwindPlanDB` through **YOUR_WORKSPACE_NAME → + New item → SQL database**, if it does not already exist. This is the forecast destination, not Plan metadata. Continue only after model actuals and the forecast/scenario checks pass.
+Before adding the destination, create `NorthwindPlanDB` through **YOUR_WORKSPACE_NAME → + New item → SQL database**, if it does not already exist. This is the forecast destination, not Plan metadata.
+
+Continue only after model actuals and the forecast/scenario checks pass.
 
 1. Open the **Writeback** ribbon and select **Add destination**.
 2. Select or create a Fabric SQL connection to `NorthwindPlanDB` using your signed-in identity.
@@ -1225,7 +1643,9 @@ Before adding the destination, create `NorthwindPlanDB` through **YOUR_WORKSPACE
 
 > **OPTIONAL INTEGRATION / PREVIEW-DEPENDENT.** Requires the published Fabric Data Agent from section 8. If that prerequisite or external integration is unavailable, continue to Final proof. This branch remains skipped at the user's request; no external resources are required for core completion.
 
-**Lab status (2026-10-10): skipped at the user's request.** Both Microsoft Foundry and Copilot Studio integration are excluded from this run, alongside Planning in section 10. No external agent creation, integration, or publication is required for the reduced-scope run. Continue to **Final proof**; skipping this module is not evidence that its checkpoint passed.
+**Lab status (2026-10-10): skipped at the user's request.** Both Microsoft Foundry and Copilot Studio integration are excluded from this run, alongside Planning in section 10. No external agent creation, integration, or publication is required for the reduced-scope run.
+
+Continue to **Final proof**; skipping this module is not evidence that its checkpoint passed.
 
 **Goal:** start with the published data agent → end with a **Microsoft Foundry** (and/or Copilot Studio) agent *outside* Fabric returning the same governed **13**.
 
@@ -1272,25 +1692,57 @@ Expose the **published** `NorthwindDataAgent` (§8) to agents *outside* Fabric �
 
 ## Final proof
 
-**Publication-readiness continuation (2026-10-12): owner accepted remaining risk.** Both RTI notebook files have unique cell IDs and pass schema validation. The regression runner requires explicit targets, fresh output directories, opt-in graph checks, and the uploaded truth CSV. Earlier offline checks passed 27 mocked happy-path assertions, three intentional-failure scenarios, and owned session cleanup on success/failure; these are not current-workspace query execution. Fresh native import and the complete cloud regression run were waived, not passed. Hosted CI had not run at acceptance. The public copy replaces deployment-specific configuration with placeholders; configure your own environment before running it. No license has been selected. No live Fabric resources were changed during publication sanitization.
+**Publication-readiness continuation (2026-10-12): owner accepted remaining risk.** Both RTI notebook files have unique cell IDs and pass schema validation. The regression runner requires explicit targets, fresh output directories, opt-in graph checks, and the uploaded truth CSV.
 
-**Expanded correctness work (2026-10-12): 26 passes, one partial, one not run.** Section 4.1 records the current result and waivers for the 28-case matrix. Browser execution succeeded, including B01/B02 DAX provenance, July filter verification, and standalone V01 matching. M01's verified-answer matching was unconfirmed; S03 was not run. No producer resend, batch reset, graph rebuild, notification action, or owner-configured Prep change was performed in this continuation. The earlier graph checks below remain separate historical evidence.
+Earlier offline checks passed 27 mocked happy-path assertions, three intentional-failure scenarios, and owned session cleanup on success/failure; these are not current-workspace query execution. Fresh native import and the complete cloud regression run were waived, not passed.
 
-**Latest graph continuation (2026-10-12): three additional GQL exercises passed.** The fresh integrated-browser retry executed hub merchants, ring detection, and blast radius directly against the existing graph. Results were **MER-0026 / 69**, **MER-0041 / 7**, and **1,800 customers / 11 merchants**, respectively. Section 9 records the native query-editor workflow and evidence. Original query text worked unchanged; no graph rebuild or binding change was needed.
+Hosted CI had not run at acceptance. The public copy replaces deployment-specific configuration with placeholders; configure your own environment before running it.
 
-**Latest demo continuation (2026-10-12):** the user accepted functionality-first demo checks rather than exhaustive result validation. Payments' two verified-answer matching tests passed; additional customer-alias questions returned data using the mastered customerKey in their DAX, with prose/approval caveats retained in section 4.1. Fresh NorthwindDataAgent and NorthwindFraudOpsAgent routes opened in YOUR_WORKSPACE_NAME, but their editors did not render during bounded checks; the Data Agent also remained on its loading screen after one reload. No fresh agent answer, activity, or runtime state was verified in this continuation. Retain the previously recorded functional passes, but do not infer current detection or notification delivery. No published agent, instructions, sources, permissions, custom actions, or data were changed.
+No license has been selected. No live Fabric resources were changed during publication sanitization.
 
-**Latest capacity check (2026-10-12): user-reported running; shutdown unverified.** The owner confirmed F4 was running. Azure's resource overview remained blank; native search found `YOUR_CAPACITY_NAME`, but the resource-selection control could not be interacted with, and Azure Home remained loading. No pause or resume was submitted during this continuation. Owner shutdown through the native capacity overview remains outstanding; verify **Status: Paused** and **Resume** before treating shutdown as complete.
+**Expanded correctness work (2026-10-12): 26 passes, one partial, one not run.** Section 4.1 records the current result and waivers for the 28-case matrix. Browser execution succeeded, including B01/B02 DAX provenance, July filter verification, and standalone V01 matching.
 
-**Earlier capacity action (2026-10-11, report creation): pause requested; final state unverified.** `YOUR_CAPACITY_NAME` was already **Active**, SKU **F4**, when report creation began. Immediately after the saved report was reopened and checked, Azure Portal **Pause -> Yes** was accepted and showed **Status: Pausing**. Refresh still showed Pausing; a subsequent full reload left the capacity blade blank, including after bringing Azure to the foreground. Do not claim the final pause completed. Check the Azure overview for **Status: Paused** and **Resume** before treating shutdown as verified; do not issue a duplicate pause or resume without checking the current state. No resources were deleted or resized.
+M01's verified-answer matching was unconfirmed; S03 was not run. No producer resend, batch reset, graph rebuild, notification action, or owner-configured Prep change was performed in this continuation.
 
-**Earlier verified pause (Payments retest, 2026-10-11):** after the subsequent user-authorized resume and Payments Prep for AI retest, Azure Portal **Pause -> Yes** paused `YOUR_CAPACITY_NAME` in resource group `fabric`, subscription `00000000-0000-0000-0000-000000000002`. The refreshed overview confirmed **Status: Paused** and **Resume** available, with SKU **F4**, location **West US 3**. This is historical evidence, not confirmation of the later report-session pause.
+The earlier graph checks below remain separate historical evidence.
 
-**Core hands-on completion:** verify gold in section 2, `[Delinquent With Fraud] = 13` from saved `IQModel` DAX in section 3.1, and the Eventhouse row count/rules in section 5. Optional preview failures do not fail these independent checkpoints. Report **Core complete; optional branches pending/skipped** only when all core checks have passed in the current workspace.
+**Latest graph continuation (2026-10-12): three additional GQL exercises passed.** The fresh integrated-browser retry executed hub merchants, ring detection, and blast radius directly against the existing graph. Results were **MER-0026 / 69**, **MER-0041 / 7**, and **1,800 customers / 11 merchants**, respectively.
 
-**Current run (2026-10-11): Core complete; optional branches pending/skipped.** Inspected the existing `nb_load_files_to_tables` saved Spark output in `YOUR_WORKSPACE_NAME`: **2,300** customers, **600** with both deposits and loans, and cross-domain result **13**. This was a saved-output inspection, not a fresh Spark execution; destructive rebuild/load cells were not rerun. The saved `IQModel` measure returned **13** in the current DAX UI check, and fresh Eventhouse checks matched every core count in section 5.3. Existing gold tables and semantic models were preserved.
+Section 9 records the native query-editor workflow and evidence. Original query text worked unchanged; no graph rebuild or binding change was needed.
 
-**Extended proof:** record each optional branch separately below. Planning and external agent grounding remain excluded at the user's request. Further Data Agent publication and external-tool agent testing are also skipped at the user's request (2026-10-11); the already-published version is retained unchanged. Earlier browser-test results remain historical evidence, including the combined-KPI failure, but further published-agent acceptance is not a gate for this reduced-scope run. No external testing tools are required. Skipping a branch does not pass it, and core completion must not be reported as completion of the original full lab.
+**Latest demo continuation (2026-10-12):** the user accepted functionality-first demo checks rather than exhaustive result validation. Payments' two verified-answer matching tests passed; additional customer-alias questions returned data using the mastered customerKey in their DAX, with prose/approval caveats retained in section 4.1.
+
+Fresh NorthwindDataAgent and NorthwindFraudOpsAgent routes opened in YOUR_WORKSPACE_NAME, but their editors did not render during bounded checks; the Data Agent also remained on its loading screen after one reload. No fresh agent answer, activity, or runtime state was verified in this continuation.
+
+Retain the previously recorded functional passes, but do not infer current detection or notification delivery. No published agent, instructions, sources, permissions, custom actions, or data were changed.
+
+**Latest capacity check (2026-10-12): user-reported running; shutdown unverified.** The owner confirmed F4 was running. Azure's resource overview remained blank; native search found `YOUR_CAPACITY_NAME`, but the resource-selection control could not be interacted with, and Azure Home remained loading.
+
+No pause or resume was submitted during this continuation. Owner shutdown through the native capacity overview remains outstanding; verify **Status: Paused** and **Resume** before treating shutdown as complete.
+
+**Earlier capacity action (2026-10-11, report creation): pause requested; final state unverified.** `YOUR_CAPACITY_NAME` was already **Active**, SKU **F4**, when report creation began. Immediately after the saved report was reopened and checked, Azure Portal **Pause -> Yes** was accepted and showed **Status: Pausing**.
+
+Refresh still showed Pausing; a subsequent full reload left the capacity blade blank, including after bringing Azure to the foreground. Do not claim the final pause completed.
+
+Check the Azure overview for **Status: Paused** and **Resume** before treating shutdown as verified; do not issue a duplicate pause or resume without checking the current state. No resources were deleted or resized.
+
+**Earlier verified pause (Payments retest, 2026-10-11):** after the subsequent user-authorized resume and Payments Prep for AI retest, Azure Portal **Pause -> Yes** paused `YOUR_CAPACITY_NAME` in resource group `fabric`, subscription `00000000-0000-0000-0000-000000000002`.
+
+The refreshed overview confirmed **Status: Paused** and **Resume** available, with SKU **F4**, location **West US 3**. This is historical evidence, not confirmation of the later report-session pause.
+
+**Core hands-on completion:** verify gold in section 2, `[Delinquent With Fraud] = 13` from saved `IQModel` DAX in section 3.1, and the Eventhouse row count/rules in section 5. Optional preview failures do not fail these independent checkpoints.
+
+Report **Core complete; optional branches pending/skipped** only when all core checks have passed in the current workspace.
+
+**Current run (2026-10-11): Core complete; optional branches pending/skipped.** Inspected the existing `nb_load_files_to_tables` saved Spark output in `YOUR_WORKSPACE_NAME`: **2,300** customers, **600** with both deposits and loans, and cross-domain result **13**. This was a saved-output inspection, not a fresh Spark execution; destructive rebuild/load cells were not rerun.
+
+The saved `IQModel` measure returned **13** in the current DAX UI check, and fresh Eventhouse checks matched every core count in section 5.3. Existing gold tables and semantic models were preserved.
+
+**Extended proof:** record each optional branch separately below. Planning and external agent grounding remain excluded at the user's request.
+
+Further Data Agent publication and external-tool agent testing are also skipped at the user's request (2026-10-11); the already-published version is retained unchanged. Earlier browser-test results remain historical evidence, including the combined-KPI failure, but further published-agent acceptance is not a gate for this reduced-scope run.
+
+No external testing tools are required. Skipping a branch does not pass it, and core completion must not be reported as completion of the original full lab.
 
 | Scope | Where | Question | Result |
 |---|---|---|---|
@@ -1315,4 +1767,18 @@ Expose the **published** `NorthwindDataAgent` (§8) to agents *outside* Fabric �
 | Optional preview | Operations Agent setup | saved supported playbook | **Passed:** Transaction amount > 10000 rule saved and verified after reload, 2026-10-11 |
 | Optional preview | Operations Agent runtime | fresh-event notification/action | approved Start/Stop and three synthetic rows verified; activity remained empty, detection/Teams delivery unverified |
 
-`YOUR_WORKSPACE_NAME` uses paid F4 capacity `YOUR_CAPACITY_NAME`, not Trial capacity. The owner reported it running on 2026-10-12; shutdown is **unverified** and no new pause was submitted because the native capacity controls were unavailable. Core Spark/DAX/KQL results and prior graph checks remain recorded above. Existing published Data Agent results are historical evidence; the combined-KPI mismatch remains unresolved, and further publication/external testing remain skipped. Operations Agent setup passed, but detection/Teams delivery remains unverified; its last verified Stop was after the approved runtime probe on 2026-10-11. Neither agent editor rendered in the 2026-10-12 checks. Prep for AI is scoped to **PaymentsDepositsModel only**: instructions, schema selection, the two-visual report, both owner-configured verified answers, and exact-phrase matching are demonstrated. Approved for Copilot is **On**, saved and verified after reopening Settings on 2026-10-12 at the user's explicit request; a fresh standalone Copilot transaction-count response returned **48,710** without the organization-approval warning, confirming approval propagation for this test. A separate model-sync notice remains and was not resolved by approval. Broader result-correctness checks are deferred under the user's demo scope; production acceptance remains pending. Data Agent ontology attachment remains blocked by its previously recorded rejection. Planning, external grounding, and Prep on the other two models are outside the current completion scope. These gaps do not change the recorded core results or constitute new functional passes.
+`YOUR_WORKSPACE_NAME` uses paid F4 capacity `YOUR_CAPACITY_NAME`, not Trial capacity. The owner reported it running on 2026-10-12; shutdown is **unverified** and no new pause was submitted because the native capacity controls were unavailable.
+
+Core Spark/DAX/KQL results and prior graph checks remain recorded above. Existing published Data Agent results are historical evidence; the combined-KPI mismatch remains unresolved, and further publication/external testing remain skipped.
+
+Operations Agent setup passed, but detection/Teams delivery remains unverified; its last verified Stop was after the approved runtime probe on 2026-10-11. Neither agent editor rendered in the 2026-10-12 checks.
+
+Prep for AI is scoped to **PaymentsDepositsModel only**: instructions, schema selection, the two-visual report, both owner-configured verified answers, and exact-phrase matching are demonstrated.
+
+Approved for Copilot is **On**, saved and verified after reopening Settings on 2026-10-12 at the user's explicit request; a fresh standalone Copilot transaction-count response returned **48,710** without the organization-approval warning, confirming approval propagation for this test.
+
+A separate model-sync notice remains and was not resolved by approval. Broader result-correctness checks are deferred under the user's demo scope; production acceptance remains pending.
+
+Data Agent ontology attachment remains blocked by its previously recorded rejection. Planning, external grounding, and Prep on the other two models are outside the current completion scope.
+
+These gaps do not change the recorded core results or constitute new functional passes.

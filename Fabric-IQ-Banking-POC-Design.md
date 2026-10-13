@@ -1,8 +1,104 @@
-# Fabric IQ Hands-On POC — Design Document
+# Fabric IQ Banking POC - Current Lab Design
 
 **Scenario:** *Northwind Financial* — a retail bank + payments processor
-**Purpose:** Historical architecture rationale and feature inventory for the banking demo.
-**Status:** Superseded as an execution guide. Use [the current UI walkthrough](LAB.md) for tenant YOUR_TENANT.
+**Purpose:** Architecture and scope of the notebook-first banking lab.
+**Updated:** 2026-10-12.
+**Execution guide:** follow [the lab instructions](LAB.md). The historical appendix below is not a deployment guide or a claim of completed coverage.
+
+## Current Scope
+
+The lab demonstrates how two synthetic banking source systems can share one mastered customer identity. Its core route builds gold tables, proves a cross-domain customer count in Spark and IQModel DAX, and validates four fraud queries in Eventhouse KQL.
+
+**Core route:** lab sections 0, 1, 1a, 2, 3.1, 5, and Final proof. Ontology, graph, AI enrichment, agents, streaming, and Planning are separate optional branches. Completing the core route does not demonstrate every Fabric IQ capability or certify production readiness.
+
+The headline question is **How many customers have both a delinquency event and a fraud alert?** The supplied sample returns **13** over the full available data. This is not a rolling last-90-days calculation, an open-alert-only calculation, or a combined financial-exposure measure.
+
+## Canonical Artifacts
+
+| Role | Lab item |
+|---|---|
+| Tenant and workspace | `YOUR_TENANT.onmicrosoft.com`, `YOUR_WORKSPACE_NAME` |
+| Gold Lakehouse | `NorthwindLakehouse`, schema `gold` |
+| Combined semantic model | `IQModel`, all ten gold tables |
+| Optional LOB models | `PaymentsDepositsModel`, `LendingCreditRiskModel` |
+| Ontology and companion graph | `NorthwindOntology`, its static Lakehouse projection |
+| Eventhouse/KQL database and table | `NorthwindRTI`, `LiveTransactions` |
+| Optional Eventstream | `NorthwindTxnStream` |
+| Data Agent | `NorthwindDataAgent` |
+| Operations Agent | `NorthwindFraudOpsAgent` |
+| Optional Plan and writeback destination | `PaymentsDepositsPlan`, `NorthwindPlanDB` |
+
+Replace all `YOUR_*` values and sample GUIDs before running. Names such as `NorthwindGold` and `DemoOntology` in the appendix describe older deployments, not the current attendee route.
+
+## Architecture
+
+1. Upload the packaged payments, lending, and truth CSVs into Lakehouse Files. Both source systems are uploaded; this lab does not configure lending shortcuts or mirroring.
+2. Run the gold-build notebook. Spark matches synthetic customer emails, creates `gold.dim_customer`, and propagates the mastered `customerKey` into the facts. The truth crosswalk scores the resolution; it is not the match input. No bronze/silver layer is built.
+3. Create IQModel from all ten gold tables, configure nine relationships, refresh, and save the cross-domain measure. Optional LOB models support focused Payments Copilot and Planning exercises.
+4. Load 6,710 reference events into Eventhouse and run the four fraud queries manually in KQL. Optional streaming sends 300 enriched events with fresh timestamps; it does not itself prove detection or notification delivery.
+5. Optionally bind nine entity types and nine relationship types to the mastered Lakehouse tables, then materialize the static graph. The entity types are Customer, Account, Merchant, Products, Branch, Transaction, FraudAlert, Loan, and DelinquencyEvent. Card, LoanApplication, Collateral, and RiskRating are not separate ontology entities in this lab.
+6. Add Transaction's Eventhouse time-series binding only after static graph acceptance. This binding does not make Eventhouse part of the materialized graph. Graph materialization ingests a static projection; do not describe it as a zero-copy live view or rematerialize the unsupported multi-source Transaction projection.
+7. Demonstrate natural-language answers through NorthwindDataAgent connected directly to IQModel. Inspect the executed DAX. Ontology attachment is a separate blocked branch; direct graph GQL is independently executed and does not prove automatic GQL/KQL federation.
+
+The implemented cross-domain relationship path is **FraudAlert -> Customer -> Loan -> DelinquencyEvent**. `Account funds Loan` and `FraudAlert escalates RiskRating` belong to the historical vision and are not implemented relationships.
+
+## Feature Coverage
+
+Coverage describes the supplied lab, not the availability of features in Microsoft Fabric. Optional means a separate exercise, not a passed acceptance check.
+
+| Scope | Capability | Implementation and evidence boundary |
+|---|---|---|
+| Core | Gold build and entity resolution | Ten gold tables; email matching in Spark; 2,300 customers and 600 source-system overlaps. |
+| Core | Combined semantic model | IQModel with nine relationships and saved `[Delinquent With Fraud] = 13`. |
+| Core | Fraud detection queries | Seed-data KQL results: 500 cross-border alerts, 194 velocity cards, 148 impossible-travel cards, and 1,373 high-risk-merchant transactions. These are query results, not automated actions. |
+| Optional | Eventstream | One 300-event send and matching KQL/bound-source preview evidence; no monitor/action acceptance implied. |
+| Optional | LOB models and Prep for AI | Payments instructions, schema selection, two verified-answer visuals, and approval checks; broader correctness remains bounded or waived. Default context is all available data unless a date filter is requested. |
+| Optional | Ontology and graph | Nine entity/relationship types; static GQL customer, hub, ring-label, and exposure checks. Identity resolution is upstream, not ontology-level multi-source matching. |
+| Optional | Data Agent | Published standalone IQModel/DAX answers observed. Ontology attachment is blocked; the combined two-KPI question has an unresolved query/output mismatch. |
+| Optional | Operations Agent | Supported single `amount > 10000` playbook saved; Start/Stop and matching test rows observed. Detection and Teams delivery remain unverified; no custom actions configured. |
+| Optional | Planning | Payments-only proposed forecast/scenario/writeback exercise; deferred, with actuals connection and downstream acceptance incomplete. Monthly deposit history is not supplied. |
+| Optional | External agent grounding | Foundry/Copilot Studio procedures depend on a published Data Agent; skipped and not validated. |
+| Not Implemented | Lending shortcut/mirroring and ontology identity matching | Both source CSV sets are loaded into the Lakehouse and mastered in Spark. |
+| Not Implemented | Generated-ontology comparison | Removed from the current lab; use the hand-curated NorthwindOntology. |
+| Not Implemented | Full fraud automation and business-system actions | The four compound/window fraud rules are KQL checks, not an accepted Operations Agent monitor. No BlockCard, case creation, AML, or credit-review integration is built. |
+| Not Implemented | Advanced graph algorithms and inferred edges | The hub query is an aggregation and the ring query counts seeded `Ring` labels. No community detection, shortest-path algorithm, or derived-edge engine is demonstrated. |
+| Not Implemented | Governance/security and ALM exercises | No attendee RLS/OLS, sensitivity-label, provenance/temporal-validity, Git integration, deployment-pipeline, or one-command reset procedure is supplied. AI schema exclusions are not security controls. |
+| Not Implemented | Extended financial questions | No last-90-days combined exposure measure, historical deposit growth, live RTI-to-Plan actuals feed, or cross-LOB funding-driver relationship is supplied. |
+
+## Acceptance and Limits
+
+Use the lab's **Final proof** and dated evidence as the acceptance record, not the older tables in the appendix. Those records include failures and waivers as well as passes. They are reference-deployment observations, not validation of an attendee's placeholder-configured environment.
+
+**Core completion:** record the gold/Spark checks, saved IQModel DAX result of 13, and the Eventhouse seed count and four KQL results. The recorded Spark evidence was inspected saved output, not a new execution. Record optional branches separately as Passed, Pending/Blocked, or Skipped.
+
+Check seed baselines before optional streaming/test ingestion, or use the documented seed interval afterwards. The raw Eventhouse total grows when the three Operations test rows and 300 streaming events are added; 6,710 is not the expected unrestricted count after those additions.
+
+The recorded reference values include fraud loss rate **76.9730%** and delinquency rate **15.4661%**. A raw fraud-loss ratio near 0.77 is not 0.77%. These are synthetic demonstration values, not realistic production loss targets. Hub/ring GQL checks independently returned MER-0026/69, MER-0041/7, and 1,800 customers at 11 high-risk merchants; counting seeded ring labels is not discovering a community algorithmically.
+
+Fresh native notebook import and the full cloud regression were waived, not passed. Operations notifications/actions, Planning, external grounding, production security, production scale, and comprehensive AI correctness are not certified. Do not infer these outcomes from saved configuration or matching answers in another engine.
+
+## Planning Boundary
+
+The optional Plan connects to **one semantic model**, PaymentsDepositsModel. A Fabric SQL database is the forecast writeback destination, not a prerequisite for creating Plan metadata. Follow the actual tenant connection flow described in the lab.
+
+Deposit Balance is a current account snapshot, not monthly history. Before following the monthly forecast exercise, provide authorized dated balance snapshots and a model measure at that grain, or explicitly seed a scenario from the current balance. Do not treat repeated current balances as historical observations. Without this input, defer the monthly deposit forecast.
+
+Fraud Loss Amount in the Plan is the Payments semantic model's batch/gold measure. No Eventhouse-to-Plan actuals feed or automatic connection between deposit forecasts and lending capacity is implemented. Any future loan-origination plan is a separate extension, not this lab's completion requirement.
+
+## Prerequisites and Delivery
+
+Use an authorized Fabric workspace and capacity with item-creation permissions. Copilot and optional agent branches need their additional eligible-capacity, tenant-setting, source-access, and model permissions as documented in the lab; missing AI eligibility does not make the independent core checkpoints pass or fail automatically. Foundry and Copilot Studio resources are needed only for their optional integrations.
+
+The public bundle contains README.md, LAB.md, this design document, six notebooks, the synthetic data ZIP, and .gitignore. It does not contain a local generator, module deployment/reset folders, a CI test suite, or developer archives. All notebook execution occurs in Fabric; local Python and PowerShell are not attendee prerequisites.
+
+Use an isolated workspace for rebuilds: gold writes overwrite tables, RTI setup drops/reloads its target, and Eventstream creation replaces a same-name stream. Do not change capacity, tenant settings, permissions, notifications, or executable actions without authorization. The full local repository retains supporting development/reference material separately.
+
+## Historical Appendix
+
+The original broader vision and reference-deployment notes are retained below for context. Proposed features, module folders, old artifact names, historical status tables, and product assumptions in this appendix are **not current lab requirements, supported-workflow guarantees, or completed acceptance claims**. The current scope and coverage table above take precedence.
+
+<details>
+<summary>Original design vision and historical reference deployment</summary>
 
 > **Current-state override (2026-10-09):** the canonical environment is tenant `YOUR_TENANT.onmicrosoft.com`, workspace `YOUR_WORKSPACE_NAME` (`00000000-0000-0000-0000-000000000003`). `IQModel` is the combined cross-domain model; `PaymentsDepositsModel` and `LendingCreditRiskModel` are LOB models. The live data item is `NorthwindGold`, and the live ontology is `DemoOntology`. Earlier references in this design to `NorthwindModel`, workspace `Fabric-IQ-Banking-POC`, medallion construction, mandatory Activator, or ontology MCP are preserved only as historical design context.
 
@@ -429,4 +525,6 @@ The tables in §15.1-15.4 record the September 2026 reference deployment. They a
 | Data agent | multiple live candidates; select one, publish it, and capture answer 13 |
 
 The current demo is fully validated only after these pending checks are captured from tenant YOUR_TENANT.
+
+</details>
 
