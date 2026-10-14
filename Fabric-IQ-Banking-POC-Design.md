@@ -40,17 +40,132 @@ The cross-domain reference answer is **13 customers** with both a delinquency ev
 
 Optional graph examples rank merchant fraud activity, count customers with seeded `Ring` labels, and find **1,800 customers at 11 high-risk merchants**. A separate real-time branch queries transaction events in Eventhouse. These examples add investigation context; they do not prove automated fraud prevention or discover fraud rings algorithmically.
 
-### Why These Fabric Components
-
-| Component | Role in the business story |
-|---|---|
-| OneLake / Lakehouse and Spark | Bring the two uploaded source datasets together and master customer identity before analysis. |
-| Power BI semantic model | Define relationships and reusable business measures so cross-domain counts and KPIs have explicit meanings. |
-| Ontology and companion graph, optional | Express customers, accounts, merchants, loans, and events as connected business entities for relationship-based investigation. |
-| Eventhouse and Eventstream, optional streaming | Query transaction events and inspect newly arriving samples independently of the batch semantic model. |
-| Fabric Data Agent, optional | Ask questions against IQModel and inspect the generated DAX; a fluent answer alone is not proof of correctness. |
-
 **Success means** reconciling customer identities, reproducing the cross-domain count, and checking fraud signals with traceable queries. It does not mean deploying a production fraud service. Automated notifications/actions, Planning, external agents, and security certification have separate limitations described below.
+
+## Feature-to-Lab Roadmap
+
+The working scenario is a joint fraud and credit-risk review: **find customers affected by both problems, understand the surrounding merchant activity, and inspect new transaction signals**. Finance also needs consistent KPIs. Each feature below addresses a different part of that review; none replaces the shared customer identity.
+
+Use the **lab section numbers**, not the older module numbers, to navigate. The core route is **0 -> 1 -> 1a -> 2 -> 3.1 -> 5 -> Final proof**. The investigation branches are optional; Planning and external-agent integration remain deferred or excluded.
+
+| Business need | Feature and its contribution | Hands-on lab | Evidence to collect / boundary |
+|---|---|---|---|
+| Establish a safe demonstration environment | Workspace and packaged synthetic data keep the exercise isolated from customer systems. | [0: Prerequisites](LAB.md#0-prerequisites-and-workspace), [1a: Understand the data](LAB.md#1a-understand-the-data-read-before-building) | Correct workspace and source meanings; no production data or unapproved setting changes. |
+| Recognize one person across payments and lending | OneLake/Lakehouse stores both sources; Spark matches emails and propagates `customerKey`. | [2: Gold build](LAB.md#2-lakehouse-and-gold-build-module-0) | 2,300 mastered customers, 600 overlaps, ten gold tables. Core. |
+| Measure the joint fraud/delinquency population consistently | Direct Lake IQModel supplies relationships and saved DAX measures. | [3.1: IQModel](LAB.md#31-build-or-repair-iqmodel) | `[Delinquent With Fraud] = 13`, with the correct customer grain. Core. |
+| Keep business Q&A focused and repeatable | LOB models, AI schema, instructions, and verified-answer visuals curate the model-backed experience. | [3.2: LOB models](LAB.md#32-retain-or-rebuild-the-lob-models), [4: Prep for AI](LAB.md#4-prep-for-ai-module-2) | Saved owner-reviewed configuration, numeric provenance, and verified-phrase matching tested separately. Optional. |
+| Identify transaction patterns worth investigating | Eventhouse and KQL evaluate cross-border, velocity, travel, and high-risk-merchant conditions. | [5.3: Fraud rules](LAB.md#53-fraud-detection-rules) | Reproduce the four seed-data query results. Core; queries do not send alerts or block cards. |
+| Describe the investigation in business entities | Ontology names the customer, account, transaction, merchant, loan, and event relationships. | [6: Ontology](LAB.md#6-ontology-two-subject-areas-modules-3-4) | Nine entity types and nine relationship types bound to mastered gold data. Optional. |
+| Follow relationships and assess merchant reach | The companion graph supports direct GQL traversal, rankings, and distinct-customer counts. | [9: Graph analysis](LAB.md#9-graph-analysis-module-6) | Cross-domain 13; merchant hub 69; seeded ring-label count 7; exposure 1,800 customers / 11 merchants. Optional. |
+| Inspect newly arriving transactions in context | Eventstream delivers sample events; a Transaction time-series binding exposes the Eventhouse source through the ontology. | [5.2: Streaming branch](LAB.md#52-load-livetransactions), [6.5: Time-series binding](LAB.md#65-time-series-binding-ties-rti-into-the-ontology) | 300 rows / 300 unique IDs after one authorized send, plus exact bound-source row evidence. Optional; not live graph refresh. |
+| Let business users ask without writing DAX | NorthwindDataAgent interprets questions against IQModel and exposes its executed query. | [8: Data Agent](LAB.md#8-data-agent-module-8) | Correct source, saved measures, filters, and raw output in the Standard draft. Optional; no publication implied. |
+| Explore a future monitoring handoff | Operations Agent setup tests a single supported transaction-amount threshold. | [6.6: Operations Agent](LAB.md#66-action-layer--operations-agent-fabric-iq) | Saved playbook and compliant time-bounded source query first. Fresh source review failed; runtime/actions are not accepted. |
+| Explore financial response scenarios | Planning would connect Payments actuals to a deposit scenario and forecast writeback. | [10: Planning](LAB.md#10-planning-module-9) | Deferred; authorized actuals, a valid forecast baseline, and writeback evidence are prerequisites, not completed outcomes. |
+| Extend access beyond Fabric | Foundry or Copilot Studio would consume an explicitly published Data Agent. | [11: Agent grounding](LAB.md#11-agent-grounding-module-10) | Excluded from this run; publication and external end-to-end testing require separate authorization. |
+
+## Use Case Walkthrough
+
+### 1. Establish Who the Customer Is
+
+**Business question:** "Are the person with a fraud alert and the delinquent borrower actually the same customer?" Source-system IDs cannot answer this by themselves. Matching on unrelated IDs would miss overlaps or associate the wrong records.
+
+**How the features help:** OneLake/Lakehouse provides a common data foundation. Spark matches the synthetic emails, creates the mastered customer dimension, and carries `customerKey` into the facts. Identity is resolved before semantic modeling or graph analysis, not by an agent guessing that two names refer to one person.
+
+**In the lab:** read section 1a, upload both source datasets, and run the section 2 gold build in an isolated workspace. Check ten gold tables, 2,300 customers, and 600 shared customers. The truth crosswalk evaluates the match; it is not its input. Both sources are uploaded, not shortcut or mirrored.
+
+### 2. Agree on the Cross-Domain Answer and KPIs
+
+**Business question:** "How many distinct customers need a coordinated fraud and credit-risk review, and which definitions are we using?" Counting fraud alerts and delinquency rows independently cannot produce the customer overlap; one customer may have several events.
+
+**How the feature helps:** Direct Lake IQModel connects both domains through the mastered dimension. A saved `[Delinquent With Fraud]` measure expresses the common business definition. Saved fraud-loss and delinquency-rate measures make their denominators explicit and reusable across direct DAX and agent questions.
+
+**In the lab:** section 3.1 builds IQModel from all ten tables, configures nine relationships, and verifies **13 distinct customers**. Its KPI checkpoint saves and checks the rate measures. Reference rates are **76.9730% fraud loss** and **15.4661% delinquency**; delinquency uses loan rows with `dpd >= 30`.
+
+**Decision supported:** identify a population for joint review and compare consistently defined KPIs. The result is not a monetary exposure estimate, a causal explanation, or an automatic credit decision. Those require additional business definitions and evidence.
+
+### 3. Make AI Answers Focused and Reviewable
+
+**Business question:** "Can a finance user ask about payments without receiving an invented lending answer or an inconsistent KPI?" The combined model and a payments-only model serve different scopes; the model chosen for a question matters.
+
+**How the features help:** optional LOB models narrow the subject area. Prep for AI selects useful fields, adds business instructions, and registers curated report visuals as verified answers. A verified answer associates a reviewed visual and its filters with a question; model approval alone does not certify accuracy.
+
+**In the lab:** use section 3.2 for PaymentsDepositsModel, then section 4 for owner-reviewed Prep, a fraud-rate card, and a deposits-by-branch-region visual. Test the saved question, expected value, actual field/filter provenance, and verified-answer match/checkmark separately. Owner configuration and matching remain separate acceptance gates.
+
+**Boundary:** AI schema selection is not row-level or object-level security. A payments-only answer must not pretend to contain lending data; use IQModel or its Data Agent for the cross-domain question. Instructions are guidance, so inspect results rather than trusting fluent wording.
+
+### 4. Identify Fraud Signals in Transaction Events
+
+**Business question:** "Which transaction patterns should fraud analysts investigate first?" A high-value cross-border transaction, rapid card reuse, implausible travel, and a high-risk merchant represent different signals and require different query logic.
+
+**How the feature helps:** Eventhouse holds event-time transaction data, and KQL expresses each rule explicitly, including its grouping or time window. This provides a deterministic investigation path independent of natural-language interpretation and the optional Operations Agent.
+
+**In the lab:** section 5 loads **6,710 seed events** and runs four KQL checks. Expect **500 cross-border alerts**, **194 velocity cards**, **148 impossible-travel cards**, and **1,373 high-risk-merchant transactions**. These have different grains: do not add them together as a distinct-customer count or financial loss.
+
+**Decision supported:** prioritize suspicious activity for review. A matching query result is not an emitted FraudAlert, confirmed fraud, a delivered Teams message, or a blocked card. Check the documented seed interval when extra streaming or test events exist.
+
+### 5. Express the Shared Business Context
+
+**Business question:** "How does a payments fraud event relate to a borrower, their loan, and a delinquency event?" Analysts need understandable entities and relationships, not just source table names.
+
+**How the feature helps:** NorthwindOntology describes nine entity types and nine relationship types over the mastered gold data. The key business path is **FraudAlert -> Customer -> Loan -> DelinquencyEvent**. The customer identity from Spark gives this path its cross-domain meaning.
+
+**In the lab:** section 6 prepares the account/customer link, creates and binds the entity types, defines the relationships, and materializes the static companion graph. Verify identities and relationship keys before traversing. Section 7 reuses this ontology; it does not introduce a generated replacement.
+
+**Boundary:** ontology does not perform the customer matching in this lab. An account-to-loan funding edge, automated credit escalation, and extra Card or RiskRating entity types belong to the historical vision, not the implemented business model.
+
+### 6. Investigate Merchant Connections and Customer Reach
+
+**Business questions:** "Which merchants concentrate fraud activity? How many customers with seeded ring labels connect to a merchant? How many customers have transacted at a high-risk merchant?" These extend the review from an individual customer to related activity.
+
+**How the feature helps:** the companion graph allows direct relationship traversal and GQL aggregations over the static projection. It offers a relationship-centric view of the same mastered data, rather than a separate identity system or an automatically federated Eventhouse query.
+
+**In the lab:** section 9 runs four queries. Confirm **13** on the cross-domain walk, **MER-0026 / 69** for the fraud-transaction ranking, **MER-0041 / 7** for distinct customers with seeded ring labels, and **1,800 / 11** for customers and high-risk merchants.
+
+**Decision supported:** select investigation targets and understand customer reach. The ring exercise counts supplied labels; it does not discover a fraud community. Exposure means a distinct-customer population here, not a loss amount. Do not rematerialize the graph to ingest the unsupported multi-source Transaction projection.
+
+### 7. Inspect New Events Without Confusing Live and Batch State
+
+**Business question:** "Can the analyst see a newly arriving transaction and relate its identifier to the known Transaction entity?" Static tables and a prebuilt graph alone do not demonstrate event delivery.
+
+**How the features help:** Eventstream carries sample events to Eventhouse. The ontology's Transaction time-series binding joins the live source using `txnId`, allowing inspection of the bound event data. This adds a live-source view alongside the static business context.
+
+**In the lab:** the optional section 5.2 streaming branch sends **300 events once**. Verify 300 rows and 300 unique transaction IDs in Eventhouse. In section 6.5, inspect the existing binding and match one exact ID, event time, amount, and merchant in the source preview.
+
+**Boundary:** ingestion proof and a bound-source preview do not prove graph freshness, a changed IQModel total, fraud detection, or notification delivery. Do not resend events or reset the seed to force a checkpoint. Complete static graph acceptance before the time-series binding.
+
+### 8. Let a Business User Ask the Same Questions
+
+**Business question:** "Can I ask for the joint-risk customer count, merchant ranking, or governed rates without writing DAX myself?" The natural-language layer should preserve definitions and source scope, not substitute its own metrics.
+
+**How the feature helps:** NorthwindDataAgent uses IQModel as its working source. Instructions guide it toward `customerKey`, authoritative facts, and saved measures. Its execution details let the reviewer check whether the generated query actually implements the business question.
+
+**In the lab:** section 8 tests the existing **Standard draft** after the section 3.1 saved-measure checks. Ask the cross-domain, merchant, and KPI questions; expand the executed DAX and raw output. Reject extra date filters, changed denominators, or replacement measures even if the narrative looks plausible.
+
+**Boundary:** a Data Agent answer, standalone model Copilot answer, and verified-answer match are separate tests. Ontology attachment is blocked in the recorded run; direct IQModel/DAX remains the working route. Do not claim automatic GQL/KQL federation or publish the draft as part of this exercise.
+
+### 9. Separate Monitoring Ambition from Accepted Automation
+
+**Business question:** "Could the bank move from manual investigation toward continuous monitoring?" That is the next operational ambition, but it needs a supported rule, a valid event window, and an explicitly approved response channel.
+
+**How the feature would help:** Operations Agent setup explores a single Transaction `amount > 10000` threshold through the ontology. It is not the execution engine for the four compound/window KQL rules in section 5.3.
+
+**In the lab:** section 6.6 reviews the saved playbook and displayed source query while the agent remains stopped. The fresh source review **failed** because the query aggregates and ignores its time bounds. A saved rule card is not proof of compliant monitoring.
+
+**Boundary:** do not count this as working detection or notification. Start, Teams messaging, card blocking, case creation, and other actions require separate authorization and runtime evidence. They are not a hidden final step of the accepted core lab.
+
+### 10. Understand the Financial and External Extensions
+
+**Planning question:** "How might finance compare deposit scenarios and batch fraud losses against an operating plan?" Section 10 proposes PaymentsDepositsPlan over one semantic model, with forecast writeback to NorthwindPlanDB. This branch is deferred; actuals access, forecasting, scenarios, and writeback are not accepted outcomes.
+
+**Required input:** Deposit Balance is a current snapshot, not monthly history. A monthly forecast needs authorized dated snapshots or an explicitly chosen current-balance scenario. No live Eventhouse-to-Plan actuals feed, lending-capacity driver, or cross-LOB funding model is implemented.
+
+**External-access question:** "Could the same curated Q&A be available in another assistant?" Section 11 describes a future Foundry or Copilot Studio consumer of a published Data Agent. Publication, authentication, and end-to-end consumer testing are separate work; these integrations are excluded from this run.
+
+### Completion Story
+
+At the end of the core lab, the attendee can explain **why 2,900 source customer records resolve to 2,300 people**, reproduce the **13-customer overlap** in the semantic model, and run four explicit fraud checks. This is the minimum coherent use case, even when optional AI or preview features are unavailable.
+
+Optional branches add curated Q&A, relationship investigation, and live-event inspection. Record each branch independently in [Final proof](LAB.md#final-proof), including blocked or skipped results. An answer in one engine must not stand in for another engine's test, and configuration must not stand in for runtime evidence.
 
 ## Current Scope
 
