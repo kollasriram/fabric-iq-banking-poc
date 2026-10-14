@@ -1,9 +1,56 @@
 # Fabric IQ Banking POC - Current Lab Design
 
 **Scenario:** *Northwind Financial* — a retail bank + payments processor
-**Purpose:** Architecture and scope of the notebook-first banking lab.
-**Updated:** 2026-10-12.
+**Purpose:** Business use case, solution architecture, and scope of the banking lab.
+**Updated:** 2026-10-14.
 **Execution guide:** follow [the lab instructions](LAB.md). The historical appendix below is not a deployment guide or a claim of completed coverage.
+
+## Business Use Case
+
+Northwind Financial runs deposit accounts, processes card payments, and manages consumer loans. The POC connects payments fraud and lending delinquency around one customer identity, helping risk teams see issues that separate line-of-business reports can miss.
+
+### The Business Problem
+
+The payments system knows customers by a payments customer ID; the lending system knows them by a borrower ID. A fraud analyst sees suspicious transactions, while a credit analyst sees missed repayments. Without a shared identity, neither view reliably identifies customers affected by both.
+
+The central question is **How many customers have both a delinquency event and a fraud alert?** The demonstration identifies the overlap for human investigation. It does not establish that fraud caused delinquency, calculate combined financial exposure, or automatically change a customer's account or credit status.
+
+### Who Uses the Results
+
+| Audience | Business question | Decision supported |
+|---|---|---|
+| Credit-risk and relationship teams | Which delinquent borrowers also have fraud alerts? | Coordinate a customer review across payments and lending. |
+| Fraud analysts | Which merchants have the most fraudulent transactions or customers with seeded fraud-ring labels? | Prioritize merchant and customer investigation. |
+| Risk managers | How many customers transacted at high-risk merchants? | Understand the breadth of customer exposure, not a monetary loss estimate. |
+| Finance and business users | What are the fraud loss rate and loan delinquency rate? | Review consistently defined KPIs rather than inventing different calculations in each answer. |
+
+### A Customer Journey
+
+1. A customer holds a deposit account and makes card payments in the payments system, while also holding a loan under a different ID in the lending system.
+2. A transaction has a fraud alert, and the loan has a delinquency event. Each source records its own part of the story.
+3. Spark matches the synthetic customer records by email and assigns a shared `customerKey`. The customer remains one person even though the source-system IDs differ.
+4. IQModel uses that mastered key to connect the fraud and delinquency facts. Its saved measure counts the customer once in the cross-domain overlap.
+5. An analyst can review the result in DAX and, optionally, explore related entities in the graph or ask the Data Agent a natural-language question. Any follow-up customer action remains outside this lab.
+
+### What the Sample Demonstrates
+
+The synthetic data contains **2,000 payments/deposit customers** and **900 lending customers**, with **600 people present in both systems**. Entity resolution produces **2,300 distinct customers**, rather than treating all 2,900 source records as different people.
+
+The cross-domain reference answer is **13 customers** with both a delinquency event and a fraud alert across all supplied data. This is a distinct-customer count, not a count of alerts, loans, or transactions. No last-90-days or open-alert-only restriction is implied.
+
+Optional graph examples rank merchant fraud activity, count customers with seeded `Ring` labels, and find **1,800 customers at 11 high-risk merchants**. A separate real-time branch queries transaction events in Eventhouse. These examples add investigation context; they do not prove automated fraud prevention or discover fraud rings algorithmically.
+
+### Why These Fabric Components
+
+| Component | Role in the business story |
+|---|---|
+| OneLake / Lakehouse and Spark | Bring the two uploaded source datasets together and master customer identity before analysis. |
+| Power BI semantic model | Define relationships and reusable business measures so cross-domain counts and KPIs have explicit meanings. |
+| Ontology and companion graph, optional | Express customers, accounts, merchants, loans, and events as connected business entities for relationship-based investigation. |
+| Eventhouse and Eventstream, optional streaming | Query transaction events and inspect newly arriving samples independently of the batch semantic model. |
+| Fabric Data Agent, optional | Ask questions against IQModel and inspect the generated DAX; a fluent answer alone is not proof of correctness. |
+
+**Success means** reconciling customer identities, reproducing the cross-domain count, and checking fraud signals with traceable queries. It does not mean deploying a production fraud service. Automated notifications/actions, Planning, external agents, and security certification have separate limitations described below.
 
 ## Current Scope
 
@@ -31,6 +78,56 @@ The headline question is **How many customers have both a delinquency event and 
 Replace all `YOUR_*` values and sample GUIDs before running. Names such as `NorthwindGold` and `DemoOntology` in the appendix describe older deployments, not the current attendee route.
 
 ## Architecture
+
+The diagram shows the current lab paths, not the broader historical vision. Solid arrows describe the core batch and query route; dashed arrows describe optional branches. Uploads are copies, identity resolution happens in Spark, and the graph is a materialized static projection.
+
+```mermaid
+flowchart TB
+  subgraph Sources["Synthetic banking sources"]
+    PAY["Payments and deposits CSVs<br/>Customers, accounts, transactions, fraud alerts"]
+    LEND["Lending and credit-risk CSVs<br/>Borrowers, loans, delinquency events"]
+  end
+
+  subgraph Core["Core lab: shared identity and reproducible answers"]
+    FILES["NorthwindLakehouse Files<br/>Uploaded source CSVs"]
+    MATCH["Spark customer matching by email<br/>Assign mastered customerKey"]
+    GOLD["OneLake / Lakehouse gold tables<br/>10 tables, 2,300 mastered customers"]
+    MODEL["IQModel<br/>Business relationships and saved measures"]
+    ANSWER["Cross-domain DAX answer<br/>13 distinct customers with delinquency and fraud alerts"]
+    RTI["NorthwindRTI Eventhouse<br/>LiveTransactions: 6,710 seed events"]
+    KQL["Manual KQL fraud checks<br/>Cross-border, velocity, travel, risky merchants"]
+  end
+
+  PAY --> FILES
+  LEND --> FILES
+  FILES --> MATCH
+  MATCH --> GOLD
+  GOLD --> MODEL
+  MODEL --> ANSWER
+  FILES -->|"Public RTI seed notebook"| RTI
+  RTI --> KQL
+
+  subgraph Optional["Optional investigation and live-data branches"]
+    ONT["NorthwindOntology<br/>9 entity types and 9 relationship types"]
+    GRAPH["Companion graph<br/>Static projection, direct GQL queries"]
+    AGENT["NorthwindDataAgent<br/>Natural-language questions with DAX inspection"]
+    SIM["Public streaming notebook<br/>300 sample events per authorized send"]
+    STREAM["NorthwindTxnStream<br/>Eventstream"]
+  end
+
+  GOLD -.->|"Lakehouse data bindings"| ONT
+  ONT -.->|"Materialize static graph"| GRAPH
+  MODEL -.->|"Semantic-model source"| AGENT
+  SIM -.-> STREAM
+  STREAM -.->|"New transaction events"| RTI
+  RTI -.->|"Transaction time-series binding and source preview"| ONT
+```
+
+**How to read the paths:** the semantic model answers the cross-domain count, the graph supports direct relationship queries, and Eventhouse runs the fraud checks. The Data Agent connects directly to IQModel. No automatic graph/Eventhouse query federation, live graph refresh, or Eventhouse-to-semantic-model refresh is implied by these arrows.
+
+**Business relationship:** `FraudAlert -> Customer -> Loan -> DelinquencyEvent`. The shared customer links a payments fraud signal to a lending delinquency event. This supports coordinated investigation without introducing an unsupported account-to-loan funding relationship or an automated credit-review action.
+
+### Implementation Flow
 
 1. Upload the packaged payments, lending, and truth CSVs into Lakehouse Files. Both source systems are uploaded; this lab does not configure lending shortcuts or mirroring.
 2. Run the gold-build notebook. Spark matches synthetic customer emails, creates `gold.dim_customer`, and propagates the mastered `customerKey` into the facts. The truth crosswalk scores the resolution; it is not the match input. No bronze/silver layer is built.
