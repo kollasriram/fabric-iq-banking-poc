@@ -46,9 +46,11 @@ Start with sections 0 and 1 below, upload the packaged synthetic data in section
 
 Local Python and PowerShell are not attendee prerequisites. Follow this walkthrough's build order; do not run every notebook indiscriminately.
 
+**Read instructions separately from evidence.** Dated continuations, saved-state notes, sample item IDs, and previous test results describe earlier runs, not your workspace. Follow the numbered procedures, inspect your own items, and record fresh checkpoints. Do not repeat historical capacity changes, publications, or agent starts.
+
 | Walkthrough section | Notebook | Before running / expected checkpoint |
 |---|---|---|
-| 2 | [Load files into gold tables](notebooks/01-load-gold-tables.ipynb) | Attach the upload lakehouse; expect 10 gold tables, 2,300 mastered customers, and 48,710 transactions. **Rebuilds gold tables.** |
+| 2 | [Load files into gold tables](notebooks/01-load-gold-tables.ipynb) | Attach the upload lakehouse; expect 10 gold tables, 2,300 mastered customers, and 48,710 transactions. **Drops the bronze, silver, and gold schemas and their tables, then rebuilds gold.** |
 | 3.1 | [Configure IQModel relationships](notebooks/02-configure-iqmodel.ipynb) | Create combined IQModel in the UI first. Then add/check the walkthrough's cross-domain measure; reference result: 13. |
 | 3.2, optional alternative | [Payments model only](notebooks/optional-payments-model.ipynb) **or** [both LOB models](notebooks/optional-two-lob-models.ipynb) | Choose one builder; the two-model notebook also creates PaymentsDepositsModel. Neither is a replacement for combined IQModel. Review overwrite behavior on existing models. |
 | 5 | [Seed RTI](notebooks/03-load-rti.ipynb) | Configure the source lakehouse and KQL database; expect 6,710 seed events. **Drops/reloads the target table.** Apply the fraud-rule KQL from section 5 separately. |
@@ -68,8 +70,9 @@ These instructions assume only basic Fabric navigation. Use the following conven
 6. When two rows have the same name, use the **Type** column or icon. In particular, choose the `NorthwindLakehouse` **Lakehouse**, not its SQL analytics endpoint, unless a step explicitly says SQL analytics endpoint.
 7. After selecting **Create**, **Save**, **Apply**, **Refresh**, or **Run**, wait for the success notification or idle/completed status before continuing.
 8. Do not create a second same-named item when one already exists. Open the existing item, compare it with the checkpoint, and resume at the first missing step.
-9. On trial capacity, stop a Spark session after a notebook finishes: **Run → More items → Stop session**. Do not mark paid Copilot, data-agent, or operations-agent checkpoints as passed on Trial.
+9. After a notebook finishes, stop the Spark session you started: **Run → Stop session**, under **More items** if hidden. Preserve other users' sessions. Do not mark paid Copilot, data-agent, or operations-agent checkpoints as passed on Trial.
 10. Record the value shown at every **Checkpoint**. A procedure is complete only when its checkpoint matches.
+11. If Fabric reports **Only 20 items can be opened at one time**, close only saved, finished lab tabs using their **Close** control, then retry the item once. Do not delete workspace items or discard unsaved work. This limit applies to models, notebooks, and querysets, not just graph queries.
 
 ### Core flow and preview branches
 
@@ -132,11 +135,11 @@ Preserve its artifacts and return to the route above. Preview availability and l
 ### 0.1 Tenant settings (Fabric admin)
 > **Optional-branch prerequisites:** enable Ontology, Data Agent, Operations Agent, and Copilot settings only for the branches you intend to run. Teams setup is needed only for approved Operations Agent notifications. Missing preview toggles or AI eligibility do not block the core Spark/DAX/KQL route; do not change tenant settings or upgrade capacity without authorization.
 
-1. Go to **Settings (gear)** → **Admin portal** → **Tenant settings**.
-2. Enable (for your org or a security group):
+1. Ask the authorized Fabric admin to open **Settings (gear) → Admin portal → Tenant settings**. Attendees without admin access should record missing prerequisites and continue with available branches, not change roles.
+2. Have the admin verify the following settings for the intended security group. Enabling or expanding a setting requires separate authorization:
    - **Copilot and Azure OpenAI** features.
    - **Users can create Fabric items** and the **Ontology (preview)**, **Data agent (preview)**, and **Operations agent (preview)** toggles.
-3. For the fraud **action layer** (§6.6), install the **Fabric Operations Agent** app in **Microsoft Teams** (Teams → **Apps** → search *Fabric Operations Agent* → **Add**) so the agent can message you.
+3. Skip Teams installation for setup-only validation. Only after separate approval for runtime notifications in §6.6, install the **Fabric Operations Agent** app using **Teams → Apps → Fabric Operations Agent → Add**, if required.
 4. Confirm a **paid F2+ Fabric capacity or P1+ Power BI Premium capacity** is assigned for Copilot. PPU alone and trial capacity do not satisfy the Copilot portions of this lab.
 
 ### 0.2 Select the workspace
@@ -146,12 +149,14 @@ Creating a workspace does not create or upgrade a capacity. Otherwise, use an ex
 
 1. In the left navigation, select **Workspaces**.
 2. In the workspace list, select **YOUR_WORKSPACE_NAME**. If it is not visible, use the workspace search box.
-3. Confirm the browser address contains `/groups/00000000-0000-0000-0000-000000000003/`. This prevents accidentally building in a similarly named workspace.
+3. Record the actual workspace ID between `/groups/` and the next `/` in the browser address. Compare it with the workspace you selected, not the example all-zero GUIDs in this guide. Use this recorded ID to distinguish similarly named workspaces throughout the lab.
 4. In the workspace header, select **Workspace settings**. If it is hidden, select **More options (… ) → Workspace settings**.
-5. Open **License info** or **Premium** (the label depends on the current Fabric UI) and record the assigned capacity.
-6. Close **Workspace settings** to return to the item list. The current validation workspace uses paid F4 capacity `YOUR_CAPACITY_NAME`, as verified in section 3.2. For another run, verify its actual assignment; on Trial, record unavailable AI branches as pending and continue the core route rather than upgrading automatically.
+5. If the settings navigation is collapsed, select the arrow beside the current heading, such as **General**, to expand it.
+6. Select **Workspace type**. In older Fabric interfaces, open **License info** or **Premium** instead.
+7. Record **Current workspace type**. Under **Details**, record the capacity name, **SKU**, and region when shown. If the assignment is not shown, record it as unverified and ask your facilitator. Do not select **Edit** or change the assignment.
+8. Close **Workspace settings** to return to the item list. On Trial, record unavailable AI branches as pending and continue the core route rather than upgrading automatically.
 
-**Checkpoint:** `YOUR_WORKSPACE_NAME` is open and its capacity type is recorded. Complete paid-only checkpoints only on an eligible capacity.
+**Checkpoint:** `YOUR_WORKSPACE_NAME` is open and its actual workspace type and capacity assignment are recorded. Complete paid-only checkpoints only on a verified eligible capacity.
 
 ---
 
@@ -279,11 +284,13 @@ Two kinds of "fraud" in this hands-on — only one needs streaming:
 
 **Goal:** start with the CSV files → end with a Lakehouse holding **10 entity-resolved `gold` tables** (one `customerKey` on every fact), exposed through the SQL analytics endpoint.
 
-**Feature:** *Lakehouse + Spark (OneLake)* — tables built once in open Delta format and read directly by Direct Lake, the ontology, and KQL with **no copies**; the entity-resolution step here mints the `customerKey` that unifies both lines of business.
+**Feature:** *Lakehouse + Spark (OneLake)* — the gold Delta tables serve Direct Lake and ontology bindings. The RTI notebook loads a separate enriched sample into Eventhouse for KQL. Entity resolution creates the shared `customerKey` that unifies both lines of business.
 
 The hands-on builds **gold only** — the notebook reads the uploaded CSVs and writes the 10 gold tables directly (with entity resolution). There is **no bronze/silver layer**.
 
 ### 2.1 Create the Lakehouse
+**Before creating:** search the workspace for `NorthwindLakehouse`. If present, open the **Lakehouse** row and verify schemas are enabled, then continue to §2.2. If its configuration differs, stop for facilitator review; do not create a duplicate, convert it, or delete existing data.
+
 1. Return to **Workspaces → YOUR_WORKSPACE_NAME**.
 2. Select **+ New item** in the workspace toolbar.
 3. In the **New item** window, type `Lakehouse` in the search box.
@@ -292,6 +299,7 @@ The hands-on builds **gold only** — the notebook reads the uploaded CSVs and w
 6. Turn on **Lakehouse schemas (public preview)**. The build uses the `gold` schema, so do not leave this option off.
 7. Select **Create**.
 8. Wait for the Lakehouse editor to open. In the left **Explorer**, confirm you can see **Tables** and **Files**.
+9. If the **Analyze your data** tip appears, select its **close button (X)** before using **Explorer**.
 
 ### 2.2 Upload the data files
 1. In the open `NorthwindLakehouse`, find **Files** in the left **Explorer**.
@@ -313,28 +321,33 @@ The hands-on builds **gold only** — the notebook reads the uploaded CSVs and w
 
 7. Collapse the left **Explorer** pane if it overlays the folder tree, then expand **Files → NorthwindLakehouse** and confirm the three folders.
 8. Select the `payments` folder. Select **More options (… ) → Upload → Upload files**.
-9. In the file picker, open the extracted local `payments` folder, select all CSV files, and select **Open**. Wait for every upload to show **Completed** before closing the upload panel.
-10. Repeat the upload for `lending`, using all CSV files from the local `lending` folder.
-11. Repeat the upload for `truth`, selecting `truth_customer_crosswalk.csv` from the local `truth` folder.
-12. Expand each Fabric folder and confirm its CSV files are listed.
+9. In the **Upload files** dialog, select the empty file-selection box below the folder path. In the file picker, open the extracted local `payments` folder, select all eight CSV files, and select **Open**.
+10. Back in **Upload files**, select **Upload**. Wait until every row shows the **Completed file upload** check mark and its transferred bytes match the file size, then select **Close upload dialog**.
+11. Repeat these upload steps for `lending`, using all six CSV files from the local `lending` folder.
+12. Repeat these upload steps for `truth`, selecting `truth_customer_crosswalk.csv` from the local `truth` folder.
+13. Expand each Fabric folder and confirm its CSV files are listed: eight in `payments`, six in `lending`, and one in `truth`.
 
 > Do **not** prefix uploaded files with `_` — Spark treats `_name` as hidden and won't infer the schema. The final layout is `Files/NorthwindLakehouse/{payments,lending,truth}/*.csv`.
 
 ### 2.3 Build gold in a notebook
+**Destructive reset:** this notebook executes `DROP SCHEMA ... CASCADE` for `bronze`, `silver`, and `gold`, then rebuilds `gold`. Every table in those schemas is removed, including unrelated tables. Use only an isolated lab lakehouse; do not run it against shared or production data.
+
+**Existing data:** if the lab tables already match the checkpoints, reuse them and continue to §2.4. If any target schema contains other data, or a rebuild is needed, stop for explicit reset approval before execution. Merely reusing the lakehouse in §2.1 does not authorize a reset.
+
 1. Return to the `YOUR_WORKSPACE_NAME` workspace item list.
-2. Select **More… → Import → Notebook → From this computer**.
+2. Select **Import → Notebook → From this computer** in the workspace item toolbar. If **Import** is hidden, use **More… → Import** first.
 3. In the **Import status** panel, select **Upload**.
 4. In the file picker, browse to this repository and select [notebooks/01-load-gold-tables.ipynb](notebooks/01-load-gold-tables.ipynb).
-5. Wait for the import status to show **Succeeded**, then open `nb_load_files_to_tables` from the workspace item list.
+5. Wait for **Imported successfully** or an import status of **Succeeded**, then open `01-load-gold-tables` from the workspace item list.
 6. If a notebook tour opens, select **Skip for now**.
-7. In the notebook toolbar, select **Add data items → From OneLake catalog**.
+7. In the notebook's left **Explorer** pane, select **Add data items → From OneLake catalog**.
 8. Search for `NorthwindLakehouse`. Select the row whose type is **Lakehouse**, not **SQL analytics endpoint**, then select **Add**.
 9. In the notebook **Explorer**, open the Lakehouse item's **More options (… )** menu and select **Set as default lakehouse** if it is not already marked as default.
-10. Select **Run all** in the toolbar.
-11. If Fabric asks to start a Spark session, select **Run** or **Start session**, then wait. Do not run another notebook while this one is starting.
-12. Watch the cell status indicators until every cell shows a green success indicator and the notebook status is **Kernel is now idle**.
+10. Select the **Run** tab. If the notebook shows **Not connected** or **Session stopped**, select **Connect → New standard session**. If **Connect** is hidden, open **More items** first. Wait for **Starting session** to finish; do not start another session or notebook.
+11. Select **Run all**. If Fabric asks to start a Spark session, select **Run** or **Start session**, then wait.
+12. Wait until every code cell shows a green success indicator and the notebook status is **Session ready** or **Kernel is now idle**. Then check the outputs below; a ready session alone does not prove the cells passed.
 13. Scroll to the final output and record the customer count, overlap count, and cross-domain count.
-14. On a trial or otherwise constrained capacity, release Spark: select the **Run** tab → **More items → Stop session**. Wait for **Session stopped successfully**.
+14. On a trial or otherwise constrained capacity, release Spark: select the **Run** tab → **Stop session**. If it is hidden, open **More items** first. Wait for **Session stopped** or **Session stopped successfully**.
 
 **Checkpoint:** `gold.dim_customer` = **2300** rows, **600** with both `hasDeposits` and `hasLoans`, and the cross-domain check returns **13**.
 
@@ -371,19 +384,27 @@ The two narrower models remain useful because Prep for AI and Planning can be sc
 2. If `IQModel` exists, open it. In the model **Explorer**, confirm the 10 tables listed in §1a are present, then continue at step 9.
 3. If `IQModel` does not exist, open the `NorthwindLakehouse` **SQL analytics endpoint**.
 4. Select **New semantic model** in the top ribbon. If it is hidden, select **New Power BI semantic model** or **More options (… ) → New semantic model**.
-5. Enter `IQModel` as the name.
+5. Enter `IQModel` as the name, confirm the destination is `YOUR_WORKSPACE_NAME`, and leave **Direct Lake on SQL** selected for this SQL-endpoint route.
 6. Expand the `gold` schema and select all 10 tables listed in §1a.
-7. Select **Confirm** or **Create** and wait for the semantic model editor to open.
-8. Confirm the storage mode shown for the model is **Direct Lake**.
-9. Return to the workspace and import [notebooks/02-configure-iqmodel.ipynb](notebooks/02-configure-iqmodel.ipynb) by selecting **More… → Import → Notebook → From this computer → Upload**.
-10. Open `nb_iqmodel_relationships`. If the notebook contains a model or workspace configuration cell, confirm it names `YOUR_WORKSPACE_NAME` and `IQModel` before running it.
+7. Select **Confirm** or **Create** once. If the dialog closes without opening the editor, return to the workspace, refresh the browser, and open `IQModel`. Do not create it again.
+8. In **Model view**, confirm all 10 tables are listed in **Data → Tables**. Select `dim_customer`, then expand **Properties → Advanced** and confirm **Storage mode** is **Direct Lake**.
+9. Return to the workspace and select **Import → Notebook → From this computer**. If **Import** is hidden, use **More… → Import** first. In **Import status**, select **Upload** and choose [notebooks/02-configure-iqmodel.ipynb](notebooks/02-configure-iqmodel.ipynb).
+10. Wait for import to finish, then open `02-configure-iqmodel` from the workspace item list. If it contains a model or workspace configuration cell, confirm it targets `YOUR_WORKSPACE_NAME` and `IQModel` before running it.
+
+  > If importing or opening an item reports **Only 20 items can be opened at one time**, dismiss the message and close a finished item's header tab with **X**. Use **All tabs** if hidden.
+  >
+  > In the Power BI layout, hover over the finished item in the left sidebar and select its **Close** icon instead. Retry the operation; closing a tab does not delete the item.
+
 11. Run the `%pip install semantic-link-labs` cell by selecting the cell, then its **Run cell** button.
 12. Wait for the package installation and automatic session restart to finish. Continue only when the session reports ready.
 13. Select **Run all below** from the next cell, or run the remaining cells in order. The notebook adds nine relationships and performs the required full refresh.
-14. If the run returns HTTP 430 `TooManyRequestsForCapacity`, stop every other notebook's Spark session, wait for the session to stop, and rerun the failed cell.
-15. Return to `IQModel`, refresh the browser, and open **Model view**.
+14. If the run returns HTTP 430 `TooManyRequestsForCapacity`, stop only finished lab notebook sessions you started. Wait for shutdown, then retry the failed cell once. Preserve other users' sessions; if still blocked, record the capacity error and ask the facilitator.
+
+  > After successful verification, select **Run → Stop session** (under **More items** if hidden). Wait for **Session stopped** before continuing to the model.
+
+15. Return to `IQModel`, refresh the browser, and open **Model view**. If the top-right mode is **Viewing**, select **Viewing → Editing (Make any changes)**. Confirm **New measure** and **Manage relationships** are enabled.
 16. Count the relationship lines or open **Manage relationships** and confirm all nine relationships are active.
-17. Select the `dim_customer` table, then select **New measure** and paste this measure:
+17. If `[Delinquent With Fraud]` already exists, select it and verify its formula below. Otherwise select `dim_customer`, then **New measure**, and paste this definition:
 
   ```dax
   Delinquent With Fraud =
@@ -393,8 +414,82 @@ The two narrower models remain useful because Prep for AI and Planning can be sc
   ```
 
 18. Select the checkmark or press **Enter** to save the measure.
-19. Open the model's query view (or create a blank report with a Card visual), add `[Delinquent With Fraud]`, and run the query/visual.
+19. Select **DAX query view**, replace the editor's example query with the following, and select **Run**. This uses the saved measure; do not add a `DEFINE` block.
+
+  ```dax
+  EVALUATE
+  ROW("Delinquent With Fraud", [Delinquent With Fraud])
+  ```
+
 20. Confirm the displayed value is **13**.
+
+### 3.1.1 Save and verify the IQModel KPI measures
+Complete this before the Data Agent KPI questions in §8. The relationship notebook does **not** create these measures. Measures saved in the optional LOB models do not exist automatically in `IQModel`.
+
+**Editor loading gate:** if **Power BI loading** persists for two minutes, reload once only after saving open work. Cancel any unsaved-work warning and record the branch as blocked. Persistent CORS or extension-loading errors are not proof of missing permissions; stop without changing roles or disabling browser security.
+
+1. Open `IQModel` in **YOUR_WORKSPACE_NAME**. Select **Viewing → Editing (Make any changes)**. If editing is unavailable, stop and ask the model owner to complete this procedure; do not substitute query-local measures.
+2. Before creating each measure, check whether its name already exists anywhere in `IQModel`. If present, select it and inspect its formula instead of creating a duplicate. Have the model owner resolve any mismatch with the approved definitions below before continuing.
+3. For each missing measure, in **Model view → Data → Tables**, select its table, then **New measure**. Paste and save its definition using the checkmark or **Enter**. Use `fact_transaction` for the first three measures and `fact_loan` for the fourth.
+
+**Home-table check:** expand a table with **Right Arrow** if Enter only selects it. After saving each measure, inspect **Properties → General → Home table**. New measures can inherit the previous home table; correct it to the table named below and verify the selected value.
+
+**fact_transaction — Transaction Amount**
+```dax
+Transaction Amount = SUM('fact_transaction'[amount])
+```
+
+**fact_transaction — Fraud Loss Amount**
+```dax
+Fraud Loss Amount =
+CALCULATE([Transaction Amount], 'fact_transaction'[isFraud] = TRUE())
+```
+
+**fact_transaction — Fraud Loss Rate**
+```dax
+Fraud Loss Rate = DIVIDE([Fraud Loss Amount], [Transaction Amount])
+```
+
+**fact_loan — Delinquency Rate**
+```dax
+Delinquency Rate =
+DIVIDE(
+  CALCULATE(COUNTROWS('fact_loan'), 'fact_loan'[dpd] >= 30),
+  COUNTROWS('fact_loan')
+)
+```
+
+4. Select each rate measure. In **Properties → Formatting**, choose **Percentage** and **4 decimal places**. Keep the expressions as ratios; do not multiply them by 100.
+
+**Formatting fallback:** if the decimal control does not retain four places, select **Custom** and enter `0.0000%` in the format textbox. Leave the field with **Tab**, allow the save to finish, and reopen the model to verify both rate format strings and their home tables.
+
+5. Return to the workspace, reopen `IQModel`, and select **DAX query view**. Replace the entire example query with this query and select **Run** or press **F5**. Do not include a `DEFINE` block.
+
+```dax
+EVALUATE
+ROW(
+  "Fraud Loss Rate", [Fraud Loss Rate],
+  "Delinquency Rate", [Delinquency Rate]
+)
+```
+
+6. Confirm the raw ratios are approximately **0.7697300801** and **0.1546610169**, respectively: **76.9730%** and **15.4661%**. A raw result grid may show ratios despite model formatting. If either measure is missing or differs, stop the KPI tests and correct the saved model first.
+
+If the grid rounds the ratios to **0.77 / 0.15**, run this precision check instead of treating those rounded cells as a mismatch:
+
+```dax
+EVALUATE
+ROW(
+  "Fraud Raw", FORMAT([Fraud Loss Rate], "0.000000000000"),
+  "Delinquency Raw", FORMAT([Delinquency Rate], "0.000000000000"),
+  "Fraud Display", FORMAT([Fraud Loss Rate], "0.0000%"),
+  "Delinquency Display", FORMAT([Delinquency Rate], "0.0000%")
+)
+```
+
+Expected: **0.769730080107 / 0.154661016949 / 76.9730% / 15.4661%**. Query-level `FORMAT` proves the saved measures' values, not their stored formats. Independently reopen **Properties → Formatting** to verify the saved format strings.
+
+**Checkpoint:** both measures survive reopening and execute without query-local definitions. This verifies saved model setup, not Data Agent acceptance; inspect the agent's executed DAX separately in §8.
 
 ### 3.2 Retain or rebuild the LOB models
 **Verified UI continuation (YOUR_WORKSPACE_NAME):** `PaymentsDepositsModel` was created from **NorthwindLakehouse → New semantic model**, selecting the eight Payments tables in `gold` and excluding the two lending facts. Its item ID is `00000000-0000-0000-0000-000000000008`.
@@ -435,12 +530,24 @@ This supersedes the earlier Payments metadata/editing gap. No measures, tables, 
 
 1. Return to **Workspaces → YOUR_WORKSPACE_NAME** and search for `PaymentsDepositsModel` and `LendingCreditRiskModel`.
 2. If either model exists, open it and record its tables, measures, and relationships before deciding to rebuild it. Do not overwrite an existing model casually.
+
+  **Choose exactly one route:** retain existing models and go directly to the checkpoint; run steps **3–6, then 13–14** for Payments only; or run steps **7–14** for both LOB models. Never run both builders as a sequence.
+
+  Both builders use `overwrite=True`: they replace same-named models, not safely merge them. If only one model is missing, the two-model builder would also replace the existing model. Without explicit overwrite approval, preserve it, record the missing model as pending, and ask the facilitator to provision it.
+
 3. To rebuild only Payments & Deposits, import [notebooks/optional-payments-model.ipynb](notebooks/optional-payments-model.ipynb) using **More… → Import → Notebook → From this computer → Upload**.
-4. Open the imported notebook. In its configuration cell, set `LAKEHOUSE` to `NorthwindLakehouse` and confirm the output model name is `PaymentsDepositsModel`.
-5. Run the `%pip install semantic-link-labs` cell and wait for the session restart.
+4. Open the imported notebook. In its configuration cell, set `LAKEHOUSE = "NorthwindLakehouse"`, confirm `SCHEMA = "gold"`, and confirm the output model name is `PaymentsDepositsModel`.
+5. Select **Run → Connect → New standard session** if disconnected. Wait for session readiness, then run the `%pip install semantic-link-labs` cell alone and wait for its installation and automatic restart to finish.
 6. Run the remaining cells in order. Wait for the final success output before opening the model.
-7. To rebuild both LOB models only in an isolated workspace, use [notebooks/optional-two-lob-models.ipynb](notebooks/optional-two-lob-models.ipynb). Before running it, confirm that overwriting both same-named models is acceptable.
-8. Open each resulting model and compare its measures with the checkpoint below.
+7. To create both LOB models in an isolated workspace, import [notebooks/optional-two-lob-models.ipynb](notebooks/optional-two-lob-models.ipynb) using the same import menu. It uses `overwrite=True`; do not run it against existing same-named models without approval.
+8. Open `optional-two-lob-models`. In the configuration cell, change `LAKEHOUSE = "FabricIQ"` to `LAKEHOUSE = "NorthwindLakehouse"`. Confirm `MODELS` names `PaymentsDepositsModel` and `LendingCreditRiskModel`.
+9. In **Explorer**, select **Add data items → From OneLake catalog**, add the `NorthwindLakehouse` **Lakehouse**, and set it as the default Lakehouse.
+10. Run the `%pip install semantic-link-labs` cell alone and wait for the session restart to finish.
+11. Run the configuration, build, table-description, and full-refresh cells in order. The WordNet synonym cells are optional; the final **VERIFY (per model)** cell checks the core model measures independently.
+12. For optional WordNet synonyms, run `%pip install nltk` and wait for the restart. Rerun **only the configuration cell** to restore `MODELS`, then run the synonym cell. Do not rerun the build cell, which overwrites the models.
+13. Run the final verification cell, then select **Run → Stop session** (under **More items** if hidden). Wait for **Session stopped**.
+14. Open only the models created or retained by your chosen route and compare them with the checkpoint below. A Payments-only run does not pass the Lending checkpoint; mark that model skipped or pending as appropriate.
+15. In `PaymentsDepositsModel`, switch to **Editing**, select `[Fraud Loss Rate]`, and inspect **Properties**. Set **Format = Percentage** and **Decimal places = 4** if needed. Keep `DIVIDE([Fraud Loss Amount], [Transaction Amount])` unchanged; do not multiply it by 100. Describe it as an amount-based ratio stored from 0 to 1, not a fraud-alert count. Save each metadata change separately, wait for saving to finish, then reload and verify persistence. A numeric KPI check alone does not verify display formatting.
 
 **Checkpoint (per model):**
 - `IQModel` → `[Delinquent With Fraud]` = **13**, with all nine relationships active after a full refresh.
@@ -487,6 +594,8 @@ If a step cannot be completed, record its current result and continue with the n
 13. Confirm approval after propagation; do not treat approval as accuracy certification or a fix for syncing warnings.
 
 ### 4.1 PaymentsDepositsModel
+
+**Current fresh-workspace status (October 14 local / October 15 UTC):** read-only Prep inspection found **0/10000** characters in AI instructions and **no registered verified answers**. Schema selection and approval settings were not inspected. The historical October 11-12 configuration and matching passes below belong to an earlier workspace, not this model. The owner must review and apply steps 2-4, register both report visuals, and complete acceptance before approval. No Prep configuration was authored or applied during this inspection.
 
 **Latest approval readback (2026-10-12, integrated browser):** at the user's explicit request, opened **YOUR_WORKSPACE_NAME -> PaymentsDepositsModel -> More options -> Settings -> Copilot** and changed **Approved for Copilot** from **Off** to **On**. This settings pane saved the toggle without a separate **Apply** button.
 
@@ -586,9 +695,11 @@ The owner warning observed during the routing retest is recorded below without a
 
 </details>
 
-**Step 1 — open the pane.** In **YOUR_WORKSPACE_NAME**, open the existing **`PaymentsDepositsModel`** -> **Prep data for AI**. If an irreversible conversion warning or unavailable tabs appear, record the gate and stop without accepting the conversion.
+**Step 1 — open the pane.** In **YOUR_WORKSPACE_NAME**, open the existing **`PaymentsDepositsModel`**. If the toolbar shows **Viewing**, select **Viewing -> Editing**; Prep is disabled in Viewing mode.
 
-**Step 2 — review AI instructions.** Open **Add AI instructions** and compare the saved text with the block below. This **1,794-character** block is already saved on the Payments model.
+Select **Prep data for AI**. If Editing is unavailable, or an irreversible conversion warning or unavailable tabs appear, record the gate and continue to section 5 without accepting a conversion or changing permissions.
+
+**Step 2 — review AI instructions.** Open **Add AI instructions** and compare the current model's saved text with the reference block below. An earlier model retained this **1,794-character** block; do not assume a newly created model has it.
 
 For a new lab model, the owner reviews the text, enters it, and selects **Apply**; preserve any unrelated existing instructions.
 ```text
@@ -639,7 +750,7 @@ Please assign ownership of this semantic model and try again.* Record this messa
 **Step 4 — build the report, then register the two verified answers.**
 
 **4a. Create and save the report visuals.**
-1. Confirm the existing **YOUR_CAPACITY_NAME** capacity is **Active**, with SKU **F4**. If paused, resume it in Azure Portal only with authorization; do not resize it. Pause it again immediately after this exercise or a blocker, and verify **Status: Paused**.
+1. Confirm the capacity recorded in §0.2 is active and eligible for Copilot; **F4 is not a required SKU**. If inactive or ineligible, record the blocker and ask the capacity owner. Do not resize, resume, or pause a shared capacity as part of this procedure.
 2. Open **YOUR_WORKSPACE_NAME**, filter the workspace list for **Payments**, and find **PaymentsDepositsModel** (type **Semantic model**). **PaymentsDepositsPlan** is a Plan, not a report; leave it unchanged.
 3. On the model row select **More options -> Create report**. Alternatively, use **New report** from the model toolbar when available. Confirm the report opens in **Edit** mode on PaymentsDepositsModel, not IQModel or a same-named model in another workspace.
 4. In **Visualizations**, select **Card**. Expand **fact_transaction -> Fraud** in the Data pane and select the existing **Fraud Loss Rate** measure. Place it in **Value** (called **Fields** in some card versions). Do not use an amount column or create a replacement measure.
@@ -651,7 +762,7 @@ Please assign ownership of this semantic model and try again.* Record this messa
 
 **4b. Owner-configured verified answers.** Creating the report does not register verified answers.
 
-The owner reviews and applies these definitions in the native Power BI UI; the agent does not automatically author them. If capacity was paused after report creation, obtain authorization for a separate resume before this step and pause again after completion.
+The owner reviews and applies these definitions in the native Power BI UI; the agent does not automatically author them. If capacity becomes unavailable, stop and record the blocker. Capacity lifecycle changes require separate authorization and are not part of registering verified answers.
 
 - **Register each visual:** select the visual in report **Edit** mode -> **... -> Set up a verified answer**. Review **Applied to this visual**, clear unintended filters, add the following phrases, and select **Apply**:
   - **Card `[Fraud Loss Rate]`:** `What is our fraud loss rate?` · `fraud loss rate` · `What percentage of transaction amount is lost to fraud?` · `share of spend lost to fraud` · `Show the card fraud loss percentage`. Avoid `how much do we lose to card fraud`, which can mean `[Fraud Loss Amount]` rather than a rate.
@@ -770,8 +881,8 @@ The **action layer** — an **operations agent** — grounds on the ontology, so
 1. Return to **Workspaces → YOUR_WORKSPACE_NAME**.
 2. Select **+ New item**, search for `Eventhouse`, and select the **Eventhouse** tile.
 3. Enter `NorthwindRTI` and select **Create**.
-4. Wait for the Eventhouse home page to open. Fabric also creates a KQL database named `NorthwindRTI`; do not create a second database.
-5. In the left Eventhouse explorer, expand **KQL databases** and select `NorthwindRTI`.
+4. Wait for the Eventhouse home page to open. If **Welcome to Eventhouse!** appears, select **Get started**. Fabric also creates a KQL database named `NorthwindRTI`; do not create a second database.
+5. In the left Eventhouse explorer, expand **KQL databases** and open `NorthwindRTI`. Alternatively, return to the workspace and open the `NorthwindRTI` row whose type is **KQL Database**, not **Eventhouse**.
 6. On the database page, find the vertical **Database details** strip on the far right. At narrower browser widths, it is collapsed.
 7. Select the strip's unlabeled arrow to expand it.
 8. Under **Overview**, find **Query URI** and select **Copy URI**.
@@ -786,33 +897,62 @@ The `LiveTransactions` **table is created for you** by the setup notebook in the
 
 ### 5.2 Load LiveTransactions
 **Primary path (recommended) — the setup notebook.** [notebooks/03-load-rti.ipynb](notebooks/03-load-rti.ipynb) does the load from Spark: creates the table, loads the events straight from the lakehouse CSVs, and verifies the row count. (The fraud rules are **not** in the notebook — you run those manually in §5.3.)
-1. Return to the workspace and select **More… → Import → Notebook → From this computer**.
+
+> **Before running:** the load cell drops and recreates `LiveTransactions`. It deletes existing streaming/test rows. For a fresh lab, run it once. If prior successful load outputs exist, preserve them and continue to §5.3. If the table contains other data, stop and obtain reset approval instead of rerunning it.
+
+1. Return to the workspace and select **Import → Notebook → From this computer** in the item toolbar. If **Import** is hidden, use **More… → Import** first.
 2. In the **Import status** panel, select **Upload**, then select [notebooks/03-load-rti.ipynb](notebooks/03-load-rti.ipynb).
-3. Wait for **Succeeded**, then open `nb_setup_rti` from the workspace.
+3. Wait for **Imported successfully** or an import status of **Succeeded**, then open `03-load-rti` from the workspace item list.
 4. If the notebook Copilot tour appears, select **Skip for now**.
-5. Select **Add data items → From OneLake catalog**.
+5. In the notebook's left **Explorer** pane, select **Add data items → From OneLake catalog**.
 6. Search for `NorthwindLakehouse`, select the row whose type/icon is **Lakehouse** rather than **SQL analytics endpoint**, and select **Add**.
 7. In the notebook **Explorer**, confirm `NorthwindLakehouse` is marked as the default lakehouse. If not, open its **More options (… )** menu and select **Set as default lakehouse**.
 8. Select the configuration cell. Replace only the `KUSTO_URI` placeholder with the Query URI copied in §5.1. Leave `DATABASE = "NorthwindRTI"` and `TABLE = "LiveTransactions"` unchanged.
-9. Select **Run all** and start the Spark session if prompted.
+9. Select the **Run** tab. If the status is **Not connected** or **Session stopped**, select **Connect → New standard session** and wait for **Session ready**. If **Connect** is hidden, open **More items** first. Then select **Run all**.
 10. Wait until all four executable cells show success and the notebook reports **Kernel is now idle**.
 11. Scroll to the final table output and confirm `Count` is `6710`.
-12. Release capacity: **Run → More items → Stop session**. Wait for **Session stopped successfully**.
+12. Release Spark: select the **Run** tab → **Stop session**. If it is hidden, open **More items** first. Wait for **Session stopped** or **Session stopped successfully**.
 
-**Checkpoint:** `LiveTransactions | count` → **6710**.
+**Checkpoint after the initial seed load:** `LiveTransactions | count` → **6710**. Later streaming or test events change this total; do not reload the table to force the seed count. Record the initial count before taking optional branches.
 
-**Alternatives (optional — skip if the notebook ran):**
-- **UI-only batch load** — in the KQL database → **Get data → Local file** → add the transaction CSV; or paste `.ingest inline` batches into a queryset.
+**Optional continuation — not an alternative seed load:**
+The raw transaction CSV is not equivalent to this notebook's output. The notebook selects all fraud plus 5,000 normal transactions, joins customer/merchant data, and produces the typed `homeCountry` and `merchantRisk` fields used by the rules. Do not substitute a direct CSV upload or unprovided inline-ingestion batches.
+
 - **Live streaming demo** — run [notebooks/04-create-eventstream.ipynb](notebooks/04-create-eventstream.ipynb) against the existing `NorthwindRTI.LiveTransactions` table. It creates `NorthwindTxnStream` (Custom endpoint source → Eventhouse destination), retrieves its connection string privately, and sends 300 enriched observations with fresh UTC timestamps and existing transaction IDs. No separate Azure Event Hubs resource is needed. The creation cell replaces a same-named Eventstream; do not use it to replace an independently managed feed.
 
 **Streaming verification:**
-1. Open the corrected streaming notebook in `YOUR_WORKSPACE_NAME`. Attach its `NorthwindLakehouse` as the default lakehouse; remove any stale notebook attachment from another workspace, not the underlying lakehouse.
-2. Run all. Package installation now precedes configuration because `%pip` can restart Python. Do not rerun the batch setup notebook or reset the existing table.
-3. Record the producer's send window and reference transaction, timestamp, and amount. After ProcessedIngestion buffers flush, rerun **only the final verification cell**, not the producer. Confirm 300 events in that window and an exact matching reference row.
-4. In `NorthwindOntology`, open **Transaction → Configure → Manage property bindings → Add binding and properties** to inspect existing bindings. Select the existing **LiveTransactions → Data preview** and find the same reference row. Confirm `fact_transaction.txnId` joins `LiveTransactions.txnId`; under **Entity type properties**, confirm the live properties use timestamp column `eventTime`. Do not add, edit, or save a binding for this check.
-5. Cancel the binding editor and stop the notebook Spark session. Do not rematerialize the graph or start an Operations Agent.
+1. In **YOUR_WORKSPACE_NAME**, search for `04-create-eventstream`. Open it if present. Otherwise select **Import → Notebook → From this computer**, select **Upload**, choose [notebooks/04-create-eventstream.ipynb](notebooks/04-create-eventstream.ipynb), and wait for successful import before opening it. Do not import a duplicate.
+2. In **Explorer → Add data items → From OneLake catalog**, select the `NorthwindLakehouse` **Lakehouse** in your workspace and select **Add**. Open its **More options → Set as default lakehouse** if it is not already marked as default.
+3. For a stale placeholder attachment, right-click its row in **Explorer → Data items** and select **Remove** (or **More options → Remove**). Remove only the notebook attachment, not the lakehouse. Confirm the stale row disappears and `NorthwindLakehouse` remains default. If Remove is unavailable, stop.
+4. Inspect outputs and search the workspace for `NorthwindTxnStream` before running. If a send is recorded, verify it with the final cell in its existing session; do not resend. If the session is gone, use the KQL recovery below. Stop if stream ownership is unclear or another feed uses it.
+5. When **Not connected** or **Session stopped**, select **Run → Connect → New standard session**; use **More items** if hidden. Wait for **Session ready**. If startup errors or remains pending after five minutes, record the state and stop without submitting another session. Connecting alone does not execute cells.
+6. For the first send only, select **Run all** once. Package installation precedes configuration because `%pip` can restart Python. Wait for successful code-cell outputs; **Not connected** is not a successful run. Do not rerun the batch setup notebook, reset the table, or resubmit a pending run.
+7. Record the producer's send window and reference transaction, timestamp, and amount. After ProcessedIngestion buffers flush, rerun **only the final verification cell**, not the producer. Confirm 300 events in that window and an exact matching reference row.
+8. After §6.5, open `NorthwindOntology`: **Transaction → Configure**. Select an existing **LiveTransactions** link in the **Data source** column, such as **LiveTransactions.amount**, then **Data preview**. Find the exact reference row and confirm the `txnId` join. Do not select Add binding, edit mappings, or save.
+9. Cancel the binding editor and select **Run → Stop session** in the notebook. Confirm the session stopped. Do not rematerialize the graph or start an Operations Agent. Record notebook execution, ingestion, and ontology preview separately; an earlier workspace's proof is not a pass for this run.
 
-**Current-workspace proof, 2026-10-12:** one 300-event send increased `LiveTransactions` from **6713 to 7013**. The send-window query returned **300 events / 300 transaction IDs**.
+**Existing-send recovery — notebook session gone:** open the `NorthwindRTI` KQL database's query editor as in §5.3. Replace every `YOUR_*` placeholder with values recorded from **your** producer output. Run each read-only query separately; neither sends events. If those values were not recorded, report verification as pending rather than resending.
+
+```kusto
+let sendStarted = datetime("YOUR_SEND_STARTED_UTC");
+let sendFinished = datetime("YOUR_SEND_FINISHED_UTC");
+LiveTransactions
+| where eventTime between (sendStarted .. sendFinished)
+| summarize events=count(), transactions=dcount(txnId), latest=max(eventTime)
+```
+
+```kusto
+LiveTransactions
+| where txnId == "YOUR_REFERENCE_TXN_ID"
+  and eventTime == datetime("YOUR_REFERENCE_EVENT_TIME_UTC")
+| project txnId, eventTime, amount, merchantId, isFraud, ingested=ingestion_time()
+```
+
+**Fresh-workspace proof, 2026-10-14:** the first successful send created `NorthwindTxnStream` and added **300 events / 300 unique txnIds**, bringing `LiveTransactions` to **7,010** rows. Only the final verification cell was rerun after ingestion buffering; the producer was not repeated. Spark shutdown was confirmed.
+
+The exact reference `TX-00047000` had `eventTime = 2026-10-14T13:08:17.547266Z`, amount **33130.5**, merchant **MER-0003**, and `isFraud = true`. KQL showed ingestion at **2026-10-14T13:09:02.6041298Z**. The existing ontology source preview independently matched the event; Cancel returned to Configure without saving. This does not prove graph freshness or Operations runtime.
+
+**Earlier-workspace proof, 2026-10-12:** one 300-event send increased `LiveTransactions` from **6713 to 7013**. The send-window query returned **300 events / 300 transaction IDs**.
 
 Reference `TX-00047000`, `eventTime = 2026-10-12T17:48:11.649361Z`, amount **33130.5**, merchant `MER-0003`, appeared in both KQL and the ontology's existing bound-source data preview; ingestion time was `2026-10-12T17:48:53.000769Z`. The `txnId` join and `eventTime` time-series ordering were verified without modifying the ontology.
 
@@ -822,7 +962,7 @@ Despite portal content-request errors, a full page reload confirmed the correcte
 
 **Local-file validation (2026-10-12):** supported `nbconvert` normalization restored unique cell IDs in both RTI notebooks without changing cell source or top-level Fabric metadata. All repository notebook schemas pass, including a recheck after subsequent local edits.
 
-A fresh native import remains unverified; the workspace Import control did not open during the bounded browser attempts. Do not execute either producer or batch loader as an import check.
+At that October 12 check, a fresh native import remained unverified because Import did not open. The later fresh-attendee run imported the public notebooks successfully. Do not execute either producer or batch loader merely as an import check.
 
 Use the saved native notebook for the demonstrated run and select the target lakehouse explicitly after any new import.
 
@@ -938,7 +1078,7 @@ The **Transaction** entity also gets a **time-series binding** to the RTI Eventh
 ### 6.1 Prep the link column
 The `CustomerHoldsAccount` relationship (§6.3) needs the master customer key on the account.
 
-Add `customerKey` to `gold.dim_account` **once**: open the §2.3 notebook (or any notebook attached to `NorthwindLakehouse`), add a **new cell** with the code below, select **Run**, then **refresh the SQL analytics endpoint** (as in §2.4) so the new column is visible.
+Add `customerKey` to `gold.dim_account` **once**: open the §2.3 notebook attached to `NorthwindLakehouse` and add a **new cell** with the code below. Run **only that cell**, not **Run all**; earlier cells reset the schemas. SQL endpoint synchronization is optional, as described in steps 8–9.
 
 *(This doesn't affect the §3 models — they don't use this column.)*
 ```python
@@ -958,15 +1098,15 @@ print("columns:", check.columns)
 print("null customerKey rows:", check.where(F.col("customerKey").isNull()).count())
 ```
 
-  1. Return to the workspace and open `nb_load_files_to_tables`.
+  1. Return to the workspace and open `01-load-gold-tables`.
   2. Confirm `NorthwindLakehouse` appears in the notebook **Explorer** and is the default lakehouse.
   3. Select the last cell, open **Edit → More items**, and select **Add code cell below**. If a **+ Code** button is visible below the cell in your UI, that creates the same cell.
   4. Paste the code above into the new cell.
   5. Select **Run cell** and wait for a green success indicator.
   6. Confirm the output says `added customerKey to gold.dim_account` or `customerKey already exists`, lists `customerKey` in `columns`, and reports `null customerKey rows: 0`.
-  7. Stop the Spark session on Trial.
+  7. Select **Run → Stop session** for the session you started and wait for shutdown, regardless of capacity SKU. Do not select **Run all** in the gold notebook; that rebuilds the gold tables.
   8. Optional SQL check: open the `NorthwindLakehouse` **SQL analytics endpoint**, select **Sync metadata from the Lakehouse**, and wait for success.
-  9. Expand **Schemas → gold → Tables → dim_account → Columns** and confirm `customerKey` is listed. The ontology binds through the Lakehouse picker, so the notebook output in step 6 is sufficient if you skip this optional SQL check.
+  9. If performing the SQL check, expand **Schemas → gold → Tables → dim_account → Columns** and confirm `customerKey` is listed. The ontology binds through the Lakehouse picker, so the notebook output in step 6 is sufficient if you skip this check. If any keys are null, stop before binding.
 
 ### 6.2 Create the ontology and its entity types
 
@@ -1018,6 +1158,10 @@ Use `Products` (plural), because `PRODUCT` is reserved. These rules are separate
 
 Connect each entity type to the gold table shown above:
 
+If the canvas says **Detailed view (non-interactive)** or **Zoom in to interact with entities**, select **zoom in** until the entity cards and Configure icons appear.
+
+If an entity card is outside the canvas view, select its name in **Explorer**, then **View Entity Type details**. This opens **Configure** without needing to pan the canvas.
+
 1. Select the entity node's **Configure entity type** icon.
 2. Select **Add properties from data** on the **Configure** page.
 3. In **Property binding**, select **Add** under **Add a data source**.
@@ -1025,34 +1169,36 @@ Connect each entity type to the gold table shown above:
 5. Expand the `gold` schema.
 6. Select the table shown for the entity in the table above.
 7. Select **Select table**.
-8. Review the generated column-to-property mappings on **Entity type properties**.
+8. Select **Entity type properties** in the left pane and review the generated column-to-property mappings.
 9. Select **Create**.
-10. Confirm **Properties** lists the bound columns on the **Configure** page.
+10. If the binding editor remains open and **Create** changes to **Save**, select the entity name (for example, **Customer**) in the top breadcrumb. Confirm **Properties** lists the bound columns on the **Configure** page.
 11. Select **Define entity type key** under **Entity type key**.
 12. Select the entity's key column shown in the table above.
 13. Select **Save**.
 14. Return to **Home** and repeat steps 1–13 for the remaining entities.
 
-**Existing binding:** in step 2, select **Manage property bindings**, then **Add**, instead of **Add properties from data**. The current Lakehouse picker does not require a separate **Connect** step.
+**Existing binding:** open **Manage property bindings** and inspect its source table, mappings, and entity key. If these match the table above, reuse the binding and continue with the next entity. Do not select **Add** for an already-correct static binding. Stop for review if an existing source or key differs.
 
 **Static binding only:** ignore **Timeseries data** if it appears on a `fact_*` binding. Add the real time-series binding in §6.5, after materializing the static graph.
 
-> **Binding-target tip:** ontology static bindings need **managed** lakehouse tables with **no delta column-mapping**. If your schema-enabled `gold` tables cause refresh errors, bind instead to a **flat (non-schema) lakehouse** holding a plain copy of the gold tables — same data, cleaner graph refresh.
+> **Binding failure:** record the exact error, source table, and entity key. This lab uses the schema-enabled `NorthwindLakehouse.gold` tables. Do not silently create a flat lakehouse, copy tables, or replace bindings as a workaround; preserve the configured sources and ask the facilitator to investigate.
 
 ### 6.3 Relationships (9)
 For **each** row in the table below:
 
-1. On the ontology canvas, select the **origin** entity node's **Configure entity type** icon.
+**Check before creating:** if the exact relationship name already exists, inspect its origin, target, mapping table, and keys. Reuse a matching binding and move to the next row. If only its mapping is missing, complete steps 6–11. Stop for review if its endpoints differ; do not create a duplicate.
+
+1. On the ontology canvas, select the **origin** entity node's **Configure entity type** icon. If the card is not visible, select the origin in **Explorer**, then **View Entity Type details**.
 2. On the **Configure** page, select **Manage relationships → Add new relationship**.
 3. In **Relationship type name**, enter the exact name from the table.
 4. In **Origin entity type**, select the origin. In **Target entity type**, select the target.
 5. Select **Create** and wait for the relationship to appear in the relationship canvas.
 6. Select the new relationship and open its data-binding configuration.
-7. Select **Use mapping table**.
-8. In the mapping-table picker, expand `NorthwindLakehouse`, expand schema `gold`, and select the binding table shown below. The current picker opens the table directly; a separate **Connect** step might not appear.
+7. Turn **Use mapping table** on.
+8. Select **Select a mapping table → Browse available sources**. Expand `NorthwindLakehouse → gold`, choose the binding table shown below, and select **Select table**.
 9. For the origin, select the origin entity property shown below, then select its matching source column in the mapping table.
 10. For the target, select the target entity property shown below, then select its matching source column in the mapping table.
-11. Select **Save** and wait for the relationship page to return.
+11. Select **Save**. Wait for the success message and for **Save** to become disabled. The binding editor remains open.
 12. Return to the ontology Home canvas and confirm the relationship line is visible before creating the next relationship.
 
 | Relationship type | Origin → Target | Binding table | Keys (origin → target) |
@@ -1070,31 +1216,37 @@ For **each** row in the table below:
 ### 6.4 Materialize the static graph & verify
 Materialize the graph **before** adding `LiveTransactions`. Graph projection currently supports Lakehouse or mirrored Delta sources, not Eventhouse sources, and an entity backed by multiple tables is ineligible for projection.
 
+**Resume an existing graph:** inspect its last load status first. If data is already loaded, go to step 8 and verify the queries without starting another ingestion. If the time-series binding already exists, preserve it and the static graph; do not remove bindings or rematerialize to repeat this exercise.
+
 1. Finish all nine static entity bindings and all nine relationship bindings. Each graph load is a full ingestion and has cost.
 2. Return to the ontology Home page and select **Manage graph**.
-3. Select **Configure Graph**, keep all nine eligible entities and all nine relationships selected, then select **Continue**.
+3. **Configure Graph** opens automatically. Wait for **Preparing graph** to finish, keep all nine eligible entities selected, then select **Continue**.
 4. Review **Projection Summary** and select **Materialize**. Do not create a duplicate if the companion graph already exists.
-5. Open the companion graph item. For this run Fabric created `NorthwindOntology_graph_95efac8aceca454d8f2649a6fb9b0282` (graph ID `00000000-0000-0000-0000-000000000011`).
-6. In the graph editor, select **Save** to trigger ingestion. Creating the graph item alone does not load its data.
-7. Wait until the editor reports **Data load completed**. The verified run loaded **9 nodes and 9 edges**.
-8. Select **Query → Query now**.
+5. In your workspace, open the generated **Graph model** whose name starts with `NorthwindOntology_graph_`. Its suffix and item ID are specific to your ontology.
+6. If the graph editor reports **Data load is in progress**, wait; **Materialize** has already started ingestion. Otherwise, select **Save** if the graph has not loaded data. Do not start another load while one is running.
+7. Wait until the editor reports **Data load completed**. Expect **9 node types and 9 edge types**; these are types, not customer or transaction row counts.
+8. Select **Query → Query now**, or **More → Query now** when Query is in the ribbon overflow.
 9. In the queryset toolbar, select **Query builder → Code editor**.
 10. Run these acceptance queries one at a time and verify the results:
   - `MATCH (c:Customer) RETURN count(c) AS n` → **2300**
   - `MATCH (t:Transaction) RETURN count(t) AS n` → **48710**
   - `MATCH (c:Customer)-[:CustomerHoldsAccount]->(:Account), (c)-[:CustomerOwnsLoan]->(:Loan) RETURN count(DISTINCT c.customerKey) AS n` → **260**
   - `MATCH (fa:FraudAlert)-[:FraudAlertConcernsCustomer]->(c:Customer)-[:CustomerOwnsLoan]->(l:Loan)-[:LoanHasDelinquency]->(d:DelinquencyEvent) RETURN count(DISTINCT c.customerKey) AS n` → **13**
-11. If an entity is missing, return to **Configure → Manage property bindings**, verify its Lakehouse table and key, and materialize again before adding the Eventhouse source.
+11. If an entity or expected result is missing, record the mismatch and ask the facilitator to inspect its static binding and key. Do not repeat a full ingestion without identifying the cause and obtaining approval; do not remove an existing Eventhouse source to force eligibility.
 
 > **Current projection limitation:** Eventhouse-backed entities and entities with multiple backing tables are excluded from ontology graph projection. Keep this companion graph as the static Lakehouse projection; adding the live binding next does not require recreating it.
 
 ### 6.5 Time-series binding (ties RTI into the ontology)
 After the static graph passes the checks above, give **Transaction** a second binding to the live Eventhouse:
 
-1. On the Home canvas, select **Transaction**, then select **View Entity Type details**.
+**Existing live binding:** on **Transaction → Configure**, select an existing **LiveTransactions** link in the **Data source** column, such as **LiveTransactions.amount**. Inspect the saved `txnId` join and **Entity type properties** timestamp `eventTime`; use **LiveTransactions → Data preview** for event verification.
+
+Cancel after inspection and skip creation steps 1–9 below. Do not add another source or save unchanged mappings. A mismatched binding needs facilitator review, not a duplicate. The October 14 preview matched the exact streamed reference event while retaining the static source.
+
+1. On Home, open **Transaction** using its **Configure entity type** icon or **Explorer → Transaction → View Entity Type details**. Confirm the breadcrumb says **Transaction** and the entity key is `txnId`.
 2. On **Configure**, select **Manage property bindings → Add binding and properties**.
 3. In **Property binding**, select **Add** under **Sources**. Do not edit or remove `gold.fact_transaction`.
-4. In the OneLake catalog, expand the `NorthwindRTI` **Eventhouse** in `YOUR_WORKSPACE_NAME`, expand its `NorthwindRTI` KQL database, and double-select `LiveTransactions`. Do not select the identically named item in `YOUR_WORKSPACE_NAME`.
+4. In the OneLake catalog, check that **Location** matches your workspace. Expand its `NorthwindRTI` **Eventhouse**, expand the `NorthwindRTI` KQL database, and double-select `LiveTransactions`. Ignore same-named items in other workspaces.
 5. Under **Relationship with primary data source**, map `fact_transaction.txnId` to `LiveTransactions.txnId`, then select **Save**.
 6. Select **Entity type properties**. Fabric creates the live columns as `Timeseries<T>` properties and assigns **Timestamp column = `eventTime`**.
 7. Confirm the desired live mappings, including account, card, customer, merchant, amount, currency, channel, geography, MCC, fraud, home-country, and merchant-risk fields, then select **Save**.
@@ -1123,20 +1275,27 @@ Lakehouse bindings remove that source limitation but do not guarantee generation
 5. If creating a missing item, enter `NorthwindFraudOpsAgent`, then select **Create**; do not create a duplicate.
 6. Wait for the **Agent setup** page to open.
 7. In **Agent instructions**, paste the following goal:
-  > *Monitor Transaction entities in NorthwindOntology. Flag a Transaction when its amount property is greater than 10000. Use only this single property-value condition; do not aggregate or combine conditions. Describe flagged transactions for review. Do not send Teams messages, execute actions, or block cards.*
+  > *Monitor Transaction entities in NorthwindOntology. Flag a Transaction when its amount property is greater than 10000. Use only this single property-value condition; do not aggregate or combine business conditions. Source the existing LiveTransactions binding at transaction-row grain. The source query must filter eventTime between its supplied startTime and endTime parameters before projection. Project Id from txnId, Timestamp from eventTime, and TransactionAmount as todouble(amount). Do not use summarize, arg_max, grouping, or deduplication. Describe flagged transactions for review. Do not send Teams messages, execute actions, or block cards.*
 The four-condition fraud design remains independently covered by KQL in section 5.3, not by this ontology-monitoring probe.
 8. Confirm the existing Knowledge source first. If NorthwindOntology is already selected, preserve it and continue at step 10; otherwise select **Knowledge -> Add data**.
 9. Search for `NorthwindOntology`, select the ontology row, and select **Add**.
 10. Confirm `NorthwindOntology` appears in the Knowledge list.
 11. Leave **Actions** unchanged. Adding BlockCard, OpenFraudCase, EscalateAMLReview, Teams messages, or flow targets requires separate approval and is not part of setup-only validation.
-12. Select **More options -> Save**, wait for **Configuration saved successfully**, and reopen to verify the instructions persisted.
-13. Select **Generate playbook**.
-14. Review the generated playbook. Confirm it references NorthwindOntology's Transaction and the single amount threshold, with no compound conditions, aggregations, notifications, or executable actions. If generation fails or no playbook persists, record the blocker and stop this branch.
-15. Select **More options -> Save** for the reviewed playbook. Wait for **Configuration saved successfully**, then reopen and verify the playbook persisted.
+12. Select **Save** in the ribbon, or under **More options** if hidden. Wait for saving to finish, then reopen and verify the instructions persisted before generating.
+13. Select **Generate playbook** once. If **Generating playbook...** remains after a bounded completion check, record generation as **Pending**, leave the agent stopped, and inspect it later. Do not submit a duplicate request. The goal's source constraints are a request, not proof of generated-query compliance.
+14. Review the playbook **and its displayed source query**. Require NorthwindOntology's Transaction, one amount threshold, and no compound conditions, aggregations, notifications, or actions. Verify the query filters `eventTime` using its start/end parameters. If generation fails or the playbook is absent, record the blocker and stop.
+
+  > A single rule card is insufficient. If the source query contains `summarize`/`arg_max`, or declares start/end parameters without using them to filter events, mark source-query review **Failed** and stop. Do not Start, silently edit the generated query, or count saving the draft as compliance or runtime proof.
+
+15. Select **Save** for the reviewed playbook, using **More options** if hidden. Wait for saving to finish, then reopen and verify the playbook persisted.
 16. Stop after saved-playbook validation for this run. Starting the agent requires review of its built-in Teams behavior and separate approval; instructions alone are not a messaging safety control.
 17. Only after runtime/notification approval, start the agent and stream a fresh matching event through the section 5 Eventstream path. Record a notification or action only if actually observed.
 
-**Setup checkpoint:** a saved, reviewed playbook references the lakehouse-backed NorthwindOntology and supported amount-threshold rule. This setup checkpoint passed in the latest UI retry below.
+**Setup checkpoint:** require a saved playbook referencing NorthwindOntology and the supported threshold, with a compliant source query. The fresh October 14 review failed: the saved query aggregates and ignores its declared time bounds. Preserve the stopped draft; the earlier-workspace pass below does not accept this fresh setup.
+
+**Latest fresh-workspace correction (October 14 local / October 15 UTC):** the revised step 7 goal was saved and confirmed after reload. One regeneration request ended with **No playbook generated** and **I was not able to process your request. Please try again or refine your instructions.** No replacement source query was available for review.
+
+Reload confirmed the refined goal, **NorthwindOntology**, **No actions**, and **No playbook available**; **Save**, **Start**, and **Stop** were disabled. Setup remains blocked, not accepted. No generated KQL was hand-edited, no duplicate generation was submitted, and no Start, notification, or action was authorized or tested.
 
 **Separate runtime checkpoint, approval required:** a fresh matching event produces the approved notification/action. Runtime has not been tested.
 
@@ -1158,7 +1317,7 @@ This is a pending generation, not a validated property binding or saved playbook
 
 A normal click on IQModel's **Editing → Make any changes** in the active browser tab also left it in Viewing mode. These are unresolved UI workflow blockers, not evidence that capacity is still paused or browser tools are unavailable.
 
-**Latest setup retry passed (2026-10-11, integrated browser):** reloaded `NorthwindFraudOpsAgent` and verified the shorter section 6.6 goal was already saved with `NorthwindOntology` as Knowledge. Submitted one **Generate playbook** request.
+**Earlier-workspace setup retry passed (2026-10-11, integrated browser):** reloaded `NorthwindFraudOpsAgent` and verified the shorter section 6.6 goal was already saved with `NorthwindOntology` as Knowledge. Submitted one **Generate playbook** request.
 
 Generation remained pending through a 90-second check but subsequently completed; no duplicate request was submitted. The reviewed playbook contains class **Transaction**, rule **Transaction Amount Over 10000**, and a single amount threshold without compound predicates or aggregations.
 
@@ -1214,7 +1373,13 @@ After a full workspace reload, that ontology and its generated Eventhouse, KQL d
 
 ## 8. Data agent (Module 8)
 
-**Demo status:** complete through the published **NorthwindDataAgent -> IQModel** path. The standalone cross-domain, merchant-ring, and governed-KPI answers are recorded below.
+**Demo status:** published results below are historical. The fresh 2026-10-13 run passed four non-KPI prompts but failed both governed KPIs. After completing §3.1.1, the 2026-10-14 **Standard draft** retest passed both KPIs using saved measures. Complete the saved-model and execution checks for your own run; the published version was not changed.
+
+**Fresh governed-KPI retest (2026-10-14):** all four approved measures were saved in `IQModel`. Reopening verified the home tables and both `0.0000%` formats. The direct saved-measure precision query returned **0.769730080107 / 0.154661016949**, with no `DEFINE` or date filters.
+
+In the existing Standard draft, *What is the fraud loss rate?* returned **76.97%** in 13 seconds; *What is the delinquency rate?* returned **15.47%** in 14 seconds.
+
+Expanded execution showed direct `[Fraud Loss Rate]` and `[Delinquency Rate]` references, respectively, with raw outputs **76.9730% / 15.4661%**. Neither query substituted a measure or added a date filter.
 
 Optional NorthwindOntology attachment is not required for this working demo; further publishing and external integrations remain excluded.
 
@@ -1243,10 +1408,22 @@ The error does not establish its root cause. A capacity pause was requested imme
 5. Wait for the editor and OneLake catalog to open.
 6. In the catalog, select **Filter**, set **Type** to **Ontology**, and apply the filter.
 7. Select `NorthwindOntology`, then select **Add**.
-8. If attachment succeeds, in **Explorer → Sources**, expand the ontology source and confirm its entities are listed. Select the entities the agent may use. If attachment is blocked by the issue above, continue to step 12 without an ontology source.
+8. If attachment succeeds, in **Explorer → Sources**, expand the ontology source and confirm its entities are listed. Select the entities the agent may use. If attachment is blocked, record that result and continue to step 9 without an ontology source. The IQModel instructions are still required.
 9. Open **Setup → Agent instructions**, or use **Agent instructions** in the toolbar if the tree entry does not open the pane.
-10. Add the `customerKey` identity rule and cross-domain routing rules from §4. Route banking questions to `IQModel`, use `fact_fraud_alert` and `fact_delinquency` as authoritative sources, and use `[Delinquent With Fraud]` for the approved customer count. Never put the expected answer in the instructions. GQL-specific guidance applies only when a graph model is connected directly.
-For KPIs, require the existing `[Fraud Loss Rate]` and `[Delinquency Rate]` measures directly, with no `DEFINE MEASURE` substitutions. Delinquency is the share of loans with `dpd >= 30`, not a balance ratio.
+10. Complete the saved-measure checkpoint in §3.1.1 first. Paste these lab instructions into **Agent instructions**; preserve unrelated instructions if reusing an agent. Never include expected numeric answers. GQL-specific guidance applies only when a graph model is connected directly.
+
+```text
+Use IQModel for banking questions.
+Use customerKey as the mastered customer identity, not paymentsCustomerId or borrowerId.
+Use fact_fraud_alert and fact_delinquency as the authoritative fraud-alert and delinquency sources.
+For delinquent borrowers with fraud alerts, use saved [Delinquent With Fraud]; return distinct dim_customer[customerKey] values where that measure is positive when a list is requested.
+Count merchant-exposed customers with DISTINCTCOUNT(fact_transaction[customerKey]), under the merchant filter, not a dimension-side count.
+Fraud-ring membership means fact_transaction[fraudType] contains Ring; do not invent a repeat-transaction definition.
+High-risk merchant exposure uses dim_merchant[riskFlag] = TRUE().
+For fraud loss rate and delinquency rate, reference saved [Fraud Loss Rate] and [Delinquency Rate] directly. Never substitute DEFINE MEASURE expressions. If absent, report unavailable.
+Delinquency is the share of loan rows with dpd >= 30, not dpd > 0 or a balance ratio.
+Do not add a date filter unless requested. Display ratios as percentages.
+```
 
 Do not add a latest-date filter unless requested; display ratios as percentages. A live test without these explicit rules generated substitute measures and an unrequested latest-date filter, so inspect DAX before accepting KPI answers.
 
@@ -1256,7 +1433,7 @@ The direct `[Delinquency Rate]` query failed with **The value for 'Delinquency R
 
 Verify the live model measures and retest; the corrected draft was not republished as a validated fix.
 
-The live `IQModel` web model view showed `[Delinquent With Fraud]` but neither rate measure in its table field lists. Local model definitions are not proof that those measures were deployed to `IQModel`.
+**Earlier model inspection, before October 14 setup:** `IQModel` showed `[Delinquent With Fraud]` but neither rate measure in its field lists. Local definitions were not proof of deployment. The fresh saved-measure setup and draft retest above supersede this missing-measure state.
 
 The editor opened in **Viewing mode**; resolve the model's editable configuration before adding the approved measures and rerunning acceptance.
 11. Click the Markdown preview to edit, replace the placeholder instructions, then click the preview to save. If your UI shows **Save** or **Apply**, use that control. Reopen the pane to verify the saved text.
@@ -1271,11 +1448,16 @@ The editor opened in **Viewing mode**; resolve the model's editable configuratio
    - *"Which merchant has the most fraud-ring members?"* → `MER-0041` (§9.3)
    - *"How many customers transacted at a high-risk merchant?"* → exposed customers (§9.4)
    - *"What's our fraud loss rate?"* / *"What's our delinquency rate?"* → model KPIs (§3)
-18. Record the answer, generated query, and actual source. A direct-IQModel pass does not prove ontology attachment worked.
+18. For each response, expand **N steps completed → Analyzed IQModel SemanticModel → Execution and output → DAX**. Record the actual source, executed DAX, raw output, and displayed answer; the planning explanation alone is not evidence. A direct-IQModel pass does not prove ontology attachment worked.
+
+  > For each KPI, require a direct saved-measure reference with no `DEFINE MEASURE` replacement or unrequested date filter. Compare raw ratios and displayed percentages with §3.1.1. Reject `dpd > 0`, balance-based delinquency, and correct numbers produced by substitute measures. Instructions alone do not enforce this gate.
+
+  > If a KPI fails, repeat §3.1.1's direct query. Correct missing or mismatched saved measures, reload the agent, and retest that question once. If the direct query passes but the agent still substitutes measures or mislabels output, record an agent failure. Do not publish or claim a fix.
+
 19. **Skip further publication and external-tool testing** at the user's request. Preserve the existing published version and leave Microsoft 365 Copilot publication off.
 20. Continue to section 9 using NorthwindOntology's companion graph independently. Section 11 remains skipped.
 
-**Checkpoint:** record the generated query and confirm the answer is **13**. Until this is run successfully in the current workspace, report the data-agent step as pending rather than verified.
+**Checkpoint:** record the headline result **13**, the three merchant/exposure results, and both KPI execution checks separately. One correct answer does not pass the whole module. Record attachment blockers and failed prompts independently; do not reuse historical results as current-workspace acceptance.
 
 **Live UI acceptance evidence (YOUR_WORKSPACE_NAME):** `NorthwindDataAgent` answered *Which delinquent borrowers also had fraud alerts?* with **13 distinct customerKeys**, using `IQModel`.
 
@@ -1404,7 +1586,11 @@ No configuration changes or further publication were attempted to work around it
 
 > **OPTIONAL PREVIEW - ontology graph investigation.** Requires the hand-curated graph from section 6.4, not the model-generated ontology. Data Agent availability is not required to run direct GQL. If no usable graph exists, record this branch as pending and continue to section 10 or Final proof.
 
-**Latest extra-query UI retry (2026-10-12): all three passed.** A fresh integrated-browser page loaded the existing NorthwindOntology companion graph in **YOUR_WORKSPACE_NAME**, graph ID `00000000-0000-0000-0000-000000000011`.
+**Fresh-workspace extra-query retry (2026-10-14): all three passed.** The existing graph retained **9 node types / 9 edge types**. **More → Query now** opened a new scratch queryset; separate Code editor queries completed with result tables: **MER-0026 / 69**, **MER-0041 / 7**, and **1,800 customers / 11 merchants**.
+
+The GQL statements in §9.2-9.4 were unchanged apart from whitespace. No graph load, rematerialization, binding change, or replacement of unrelated unsaved queries was performed. These results are fresh-workspace evidence; the October 12 records below remain historical.
+
+**Earlier-workspace extra-query UI retry (2026-10-12): all three passed.** A fresh integrated-browser page loaded the existing NorthwindOntology companion graph in **YOUR_WORKSPACE_NAME**, graph ID `00000000-0000-0000-0000-000000000011`.
 
 Selected **Query -> Query now**, then **Query builder -> Code editor**, and executed sections **9.2, 9.3, and 9.4** separately in a new unsaved queryset.
 
@@ -1426,13 +1612,15 @@ An agent connected to IQModel executes DAX instead; matching results across thes
 
 1. Return to **Workspaces → YOUR_WORKSPACE_NAME**.
 2. Open the graph model created for `NorthwindOntology`. If it is not listed separately, open `NorthwindOntology` and select **Manage graph**.
-3. In the graph editor toolbar, select **Query → Query now**. This opens an unsaved queryset; use **Create queryset** instead when you want a reusable item.
-4. In the queryset toolbar, select **Query builder → Code editor**.
+3. Select **Query → Query now** for an unsaved queryset; at narrower widths, use the ribbon's **More → Query now**. Use **Create queryset** only for a reusable item. If the 20-open-item limit appears, close finished, saved tabs using the header **X** or sidebar **Close**, then retry once. Preserve unsaved queries.
+4. In the queryset toolbar, select **Query builder → Code editor**. For the keyboard fallback, focus **Query builder**, press **Enter** to open its menu, then **Down Arrow → Enter** to select **Code editor**.
 5. Place the cursor in the input box and remove any sample query.
 6. Paste the §9.1 query only.
-7. Select **Run query** and wait for both the result table and node-link diagram to finish loading.
-8. Record the result, clear the editor, and repeat for §9.2, §9.3, and §9.4.
+7. Confirm the complete pasted query is visible in the editor, then select **Run query** once. Wait for a completed execution and result table; aggregate queries need not produce a node-link diagram. Editor text alone is not execution evidence.
+8. Record the result and repeat for §9.2, §9.3, and §9.4. Use **Add query** to preserve each query/result in the scratch queryset, switching each new query to **Code editor**. Do not replace unrelated unsaved queries.
 9. If Fabric returns a continuation token, select **Run** again as prompted to retrieve the next page.
+
+If no execution status or result appears within two minutes, record the UI blocker. Reopen the workspace and existing graph once, preserving unsaved work. If the retry still produces no result, stop this branch. Do not create duplicate querysets, rematerialize the graph, or change capacity/permissions to force a pass.
 
 For each analysis below, the bold **Ask** is the natural-language question (data agent, §8); paste the independent **GQL** acceptance query into the **Code editor** to verify the graph result.
 
@@ -1691,6 +1879,58 @@ Expose the **published** `NorthwindDataAgent` (§8) to agents *outside* Fabric �
 ---
 
 ## Final proof
+
+**Fresh attendee run (2026-10-13; continued October 14 local / October 15 UTC): core passed; KPI, streaming, and additional graph checks passed; Operations remains blocked.** This run started in an empty workspace and used the public notebooks and native portal instructions. Earlier historical evidence below is not acceptance evidence for this workspace.
+
+Initial optional attempts stalled before agent creation and streaming import. Native-UI retries created both agents and imported the streaming notebook. The October 14 continuation resolved the saved-model, KPI, streaming, and graph blockers. The table combines these fresh-workspace checks; exclusions and Operations runtime remain unaccepted.
+
+**Live matching retry (October 14 local; October 15, 03:10 UTC):** browser access recovered. A new standalone Copilot chat attached the exact fresh-workspace Payments model and submitted *What is our fraud loss rate?* The M01 result below supersedes the earlier browser-blocked status; it did not pass.
+
+The answer showed syncing and unapproved-data warnings. Its expanded provenance identified **Fraud Loss Rate**, **Filters applied None**, and a displayed value of **0.77** without percentage interpretation. No verified-answer match/checkmark was observed. Read-only model inspection then hit the 20-open-item limit; normal click and keyboard dismissal did not clear it.
+
+**Superseding metadata fix and retest (October 14 local / October 15 UTC):** closing a completed, saved editor tab recovered native model access. `[Fraud Loss Rate]` had **General** format. Its unchanged ratio formula now has persisted **Percentage / 4 decimal places** and a description identifying the amount-based 0-to-1 ratio. Full reload confirmed all three metadata changes. A new exact-model Copilot chat returned a **76.9730%** card, but its narrative still said **0.77** with unspecified scale. Provenance remained **Fraud Loss Rate / Filters None**, an unapproved-data warning remained, and no verified-answer match appeared. Formatting passed; narrative interpretation and M01 matching did not. Read-only Prep inspection found empty instructions and verified answers; owner configuration remains pending.
+
+| Check | Fresh-run result |
+|---|---|
+| Gold / Spark | Passed: 10 tables; 2,300 customers; 600 mastered cross-LOB customers; headline 13 |
+| Saved IQModel / DAX | Passed: 10 Direct Lake tables, 9 relationships, saved headline measure returns 13 without DEFINE |
+| Eventhouse / KQL | Passed: 6,710 seed rows; four rule results 500 / 194 / 148 / 1,373 |
+| Two LOB models | Passed: saved KPI checks and metadata enrichment; WordNet added 224 Payments and 95 Lending synonyms |
+| Ontology | Passed: 9 static entity bindings and keys, 9 saved relationship mappings |
+| Static graph | Passed: 9 node types and 9 edge types; acceptance counts 2,300 / 48,710 / 260 / 13 |
+| Transaction time-series binding | Passed: txnId joins txnId; 13 live properties ordered by eventTime; static source retained. October 14 Data preview matched the exact newly streamed event; editor canceled without saving |
+| Operations Agent setup | Blocked: earlier source aggregates and ignores time bounds. Refined row-level/time-bounded goal saved and reloaded; one regeneration failed with No playbook generated. Final reload: No playbook available, NorthwindOntology, No actions; Start/Stop disabled. No compliant setup or runtime proof |
+| Data Agent | Four prompts passed against IQModel: headline 13, merchant hub MER-0026 / 69, ring MER-0041 / 7, and exposure 1,800. Executed DAX and raw outputs inspected; Standard runtime retained. Ontology attachment did not persist |
+| Governed KPI prompts | Passed October 14 Standard draft retest: saved-measure DAX with no DEFINE or date filters; raw outputs 76.9730% / 15.4661%, answers 76.97% / 15.47%. Model values, home tables, and stored rate formats verified after reopening |
+| Cross-domain comparison (S03) | Executed, partial: standalone IQModel Copilot returned 2,300 using a customer count filtered by the headline measure, not the required 13. Standard draft Data Agent returned 13; actual DAX and raw output inspected. The standalone Copilot path failed; do not mark the comparison passed |
+| Verified-answer matching (M01) | Retested after persisted metadata fix: card 76.9730%, narrative 0.77 with unspecified scale; Fraud Loss Rate, no filters. No verified match/checkmark; unapproved-data warning remained. Card formatting passed, narrative and matching not accepted |
+| Optional streaming | Passed October 14: Standard Spark session, one 300-event send, 300 matching rows / 300 unique txnIds, total 7,010 rows, and exact event/ingestion proof. Verification-only cell rerun; Spark stopped |
+| Additional graph exercises (9.2-9.4) | Passed October 14: separate completed GQL result tables in a new scratch queryset; MER-0026 / 69, MER-0041 / 7, and 1,800 customers / 11 merchants. Existing graph and unsaved user queries preserved |
+| Owner-configured Prep | Pending: native access recovered; fresh AI instructions 0/10000 characters and verified answers empty. Schema selection and approval settings not inspected. Owner review/Apply, registrations, and acceptance remain required; no Prep edits made |
+| Standalone payments notebook | Not run independently; do not overwrite the already-tested model to repeat it |
+| Planning / external grounding | Skipped under the existing exclusions; not passed |
+
+The earlier October 14 Operations review found `summarize arg_max(eventTime, amount) by txnId` and unused `startTime`/`endTime` parameters. The subsequent saved-goal correction requested bounded transaction-row input without aggregation; generation failed and the final reload showed **No playbook available**. See section 6.6 for the exact outcome. Setup and runtime remain unaccepted; no Start, actions, or publication were submitted.
+
+**Earlier fresh-workspace failures (2026-10-13):** both KPI answers used query-local `DEFINE MEASURE`; delinquency also used `dpd > 0` and returned **28.81%**. Streaming remained Not connected for 90 seconds. Graph §9.2 displayed its query but no execution result; §9.3-9.4 did not run. These failures are superseded only by the specific October 14 passes above.
+
+Saved instructions alone do not enforce governed measures. The passing retest followed persisted model setup and actual DAX inspection. Reject substitutions even when numbers match; the approved delinquency definition is the share of loan rows with `dpd >= 30`.
+
+**Streaming proof (2026-10-14 UTC):** the single send ran **13:08:16.894264-13:08:17.592675**. The verification-only rerun returned **300 rows / 300 unique txnIds** and total **7,010**. `TX-00047000`, event time **13:08:17.547266**, amount **33,130.5**, merchant **MER-0003**, and `isFraud = true` matched; ingestion time was **13:09:02.6041298**.
+
+The existing ontology binding's Data preview independently showed that exact transaction and event time. Its `txnId` join was unchanged, and the editor was canceled without saving. No events were resent, RTI seed data reset, or graph rematerialized.
+
+**Recovery:** if Fabric reports the 20-open-item limit, close completed header/sidebar tabs, not workspace artifacts. During the first graph retry, an undismissed error prevented tab closure; no extra query ran.
+
+During the October 13 attempt, a workspace reload allowed closing saved agent tabs and opening Query now, but execution remained unverified.
+
+On October 14, **More → Query now** opened a new scratch queryset; **Query builder → Enter → Down Arrow → Enter** selected Code editor. All three additional exercises completed with result tables.
+
+For Operations Agent instructions, leave the field and wait for Save to enable before saving. Reopen to verify the goal, source, and playbook. A success toast alone is not persistence proof.
+
+For a stalled create/import or loading editor, reload once and check the workspace before retrying. Reopen any item that exists; do not submit duplicate creation, change permissions/capacity, or resend events to bypass loading. Resume blocked checks in a fresh signed-in browser session.
+
+The October 13 workspace reload listed 18 items with no NorthwindTxnStream. October 14's first successful send created that Eventstream and ingested the batch; its owned Spark session was explicitly stopped. No agent was started, notification/action enabled, publication submitted, or capacity/permission changed during this continuation.
 
 **Publication-readiness continuation (2026-10-12): owner accepted remaining risk.** Both RTI notebook files have unique cell IDs and pass schema validation. The regression runner requires explicit targets, fresh output directories, opt-in graph checks, and the uploaded truth CSV.
 
